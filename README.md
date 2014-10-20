@@ -7,7 +7,7 @@
 
 ### How ? ###
 * Go to the **examples -> display3D** folder for examples.
-* A good place to start is the **shapes** demo.
+* A good place to start is the **geometry** demo.
 
 
 ### Basic Setup ###
