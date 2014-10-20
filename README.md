@@ -12,8 +12,6 @@
 
 ### Basic Setup ###
 ```
-#!javascript
-
 var scene = new Omega3D.Scene();
 var cam    = new Omega3D.cameras.Camera();
 
