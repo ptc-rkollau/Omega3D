@@ -1,12 +1,7 @@
-Omega3D
-=======
-
-WebGL 3D Rendering Library
-
-# OMEGA3D - WebGL Rendering Library#
+# OMEGA3D - WebGL 3D Rendering Library#
 
 ### What ?  ###
-* Javascript WebGL rendering library.
+* Javascript WebGL 3D rendering library.
 * Current stable version: **0.0.1.3 Alpha**
 * [Learn more here!](http://lab.rackdoll.nl/js/omega/)
 
