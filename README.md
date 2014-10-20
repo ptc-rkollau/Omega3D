@@ -6,7 +6,7 @@
 * [Learn more here!](http://lab.rackdoll.nl/js/omega/)
 
 ### Features ###
-* Optimized linkedlist batch rendering.
+* Linkedlist batch rendering.
 * Customizable RenderPasses.
 * RenderChains, for rendering control.
 * FrameBuffer and StencilBuffer support.
