@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Stencil buffer demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+</head>
+<script type="x-shader/x-vertex" id="vertexshader">
+        varying vec2 vTexCoord;
+        void main(void){
+            vec4 pos = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
+            gl_Position = pos;
+            vTexCoord   = aTextureCoord;
+        }
+</script>
+<script type="x-shader/x-vertex" id="fragmentshader">
+        varying vec2 vTexCoord;
+        uniform sampler2D tex;
+        void main(void){
+            vec4 color = texture2D(tex, vec2(vTexCoord.s, vTexCoord.t));
+            gl_FragColor = vec4(color.rgb * 0.3, color.a);
+        }
+</script>
+<script type="text/javascript">
+    var images, stencil_scene, stencil_cam;
+    var scene, cam, renderer, chain;
+    var bg_scene, maincam;
+    var torus, torus_reflection, mask;
+    function init(){
+        //load images.
+        var utils = new OMEGA.Utils;
+        utils.LoadImages(["rock.jpg"], onLoadDone);
+    }
+    function onLoadDone(imgs) {
+        images = imgs;
+
+        //setup scenes.
+        buildStencilScene();
+        buildScene();
+        buildBGScene();
+
+        //setup stencil test data.
+        var data = {stencilData:{}, contentData:{}};
+        data.stencilData.stencilFuncData = [Omega3D.ALWAYS, 1, 0xFF];
+        data.stencilData.stencilOpData   = [Omega3D.KEEP,Omega3D.KEEP,Omega3D.REPLACE];
+        data.stencilData.stencilMask     = 0xFF;
+        data.stencilData.depthMask       = false;
+
+        data.contentData.stencilFuncData = [Omega3D.EQUAL, 1, 0xFF];
+        data.contentData.stencilOpData   = null;
+        data.contentData.stencilMask     = 0x00;
+        data.contentData.depthMask       = true;
+
+        //setup renderer and renderchain.
+        renderer           = new Omega3D.WebGLRenderer;
+        renderer.autoClear = false;
+        chain              = new Omega3D.RenderChain;
+        chain.AddRenderPass( new StencilPass(renderer, stencil_scene, cam, data));
+        chain.AddRenderPass( new RenderPass(renderer, scene, cam));
+        chain.AddRenderPass( new ProxyPass(this, this.disableStencil, []));
+        chain.AddRenderPass( new RenderPass(renderer, bg_scene, cam));
+        renderer.SetRenderChain(chain);
+
+        //start the render.
+        render();
+    }
+
+    function buildStencilScene(){
+        //create stencil scene and stuff.
+        stencil_scene = new Omega3D.Scene();
+        stencil_scene.setColor(1, 1, 1);
+        stencil_cam   = new Omega3D.cameras.Camera();
+
+        var tex = new Omega3D.BasicTexture;
+        var sha = new Omega3D.Shaders.Basic(false, [0, 0, 0]);
+        var mat = new Omega3D.Material(sha, [tex]);
+        var geom = new Omega3D.Geometry.SquareGeometry(1.5,1.5,10,10);
+        var mesh = new Omega3D.Mesh(geom);
+        mask = new Omega3D.Object3D(mesh, mat);
+        mask.SetPosition(0, -1, 0);
+        mask.SetRotation(Math.PI/2, 0, -2);
+
+        stencil_scene.addChild( mask);
+    }
+    function buildScene(){
+        scene = new Omega3D.Scene();
+        scene.setColor(1, 1, 1);
+        cam   = new Omega3D.cameras.Camera();
+        cam.SetPosition(0, -0.5, -3);
+        cam.SetRotation(0.5, 0, 0);
+
+        var shMat = new Omega3D.ShaderMaterial({
+            uniforms: {
+                tex: {
+                    type: "sampler2D",
+                    value: new Omega3D.BasicTexture(images[0])
+                }
+            },
+            vertex_src: document.getElementById( 'vertexshader' ).textContent,
+            fragment_src: document.getElementById( 'fragmentshader' ).textContent
+        });
+
+        var geom = new Omega3D.Geometry.TorusGeometry( 0.75, 0.2 );
+        var mesh = new Omega3D.Mesh(geom);
+        torus_reflection = new Omega3D.Object3D(mesh, shMat);
+        torus_reflection.SetPosition(0, -2, 0);
+        torus_reflection.SetRotation(0, 1.2,0);
+        torus_reflection.SetScale(1, -1,1);
+        scene.addChild( torus_reflection );
+    }
+    function buildBGScene(){
+        bg_scene = new Omega3D.Scene();
+        bg_scene.setColor(1, 1, 1);
+
+        maincam = new Omega3D.cameras.FreeCamera();
+        maincam.SetSpeed(0.01);
+        var k = new OMEGA.listeners.KeyListener();
+        maincam.SetListener(k);
+        Omega3D.AddKeyListener(k);
+
+        var tex  = new Omega3D.BasicTexture(images[0]);
+        var sha  = new Omega3D.Shaders.Basic(true);
+        var mat  = new Omega3D.Material(sha, [tex]);
+        var geom = new Omega3D.Geometry.TorusGeometry( 0.75, 0.25 );
+        var mesh = new Omega3D.Mesh(geom);
+        torus = new Omega3D.Object3D(mesh, mat);
+        torus.SetPosition(0, 0, 0);
+        torus.SetRotation(0, 1.2,0);
+        bg_scene.addChild( torus );
+    };
+
+    this.disableStencil = function(){
+        scene.getGL().disable(scene.getGL().STENCIL_TEST );
+        renderer.CLEAR_DEPTH_BIT = true;
+        renderer.CLEAR_STENCIL_BIT = false;
+        renderer.CLEAR_COLOR_BIT = false;
+        renderer.clear();
+        renderer.CLEAR_STENCIL_BIT = true;
+        renderer.CLEAR_COLOR_BIT = true;
+    };
+
+
+    function render() {
+        renderer.clear({r:1, g:1, b:1, a:1});
+        requestAnimationFrame( render );
+
+        cam.LookAt(0,1,0,[Math.cos(scene.getTime()/5)*1, 1,  Math.sin(scene.getTime()/5)*1]);
+
+        torus.Rotate(0, 0.000, 0.01);
+        torus_reflection.Rotate(0, 0.000, -0.01);
+
+        //render scene.
+        renderer.render();
+    }
+</script>
+<body onload="init();">
+<canvas id="omega" style="border: none;" width="800" height="500" ></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Shadermaterial demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+
+</head>
+<script type="x-shader/x-vertex" id="vertexshader">
+        varying vec2 vTexCoord;
+        void main(void){
+            vec4 pos = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
+            gl_Position = pos;
+            vTexCoord   = aTextureCoord;
+        }
+</script>
+<script type="x-shader/x-vertex" id="fragmentshader">
+        varying vec2 vTexCoord;
+        uniform sampler2D tex;
+        void main(void){
+            vec4 c01 = texture2D(tex, vec2(vTexCoord.s, vTexCoord.t));
+            gl_FragColor = c01;
+        }
+</script>
+<script type="x-shader/x-vertex" id="cvertexshader">
+        varying vec3 vTexCoord;
+        void main(void){
+            vec4 pos = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
+            gl_Position = pos;
+            vTexCoord = aVertexPos;
+        }
+</script>
+<script type="x-shader/x-vertex" id="cfragmentshader">
+        uniform samplerCube tex2;
+        varying vec3 vTexCoord;
+        void main(void){
+            gl_FragColor = textureCube(tex2, vTexCoord);
+        }
+</script>
+
+
+<script type="text/javascript">
+    var images, utils, omega, renderer,chain, scene01,scene02, cam01, cam02, fbt, o, skybox;
+    function init(){
+        utils = new OMEGA.Utils;
+        utils.LoadImages(["rock.jpg",
+            "images/posx.png",
+            "images/negx.png",
+            "images/posy.png",
+            "images/negy.png",
+            "images/posz.png",
+            "images/negz.png",
+            "metal.jpg",
+            "normal.jpg"], onLoadDone);
+
+    }
+    function onLoadDone(imgs){
+        images = imgs;
+        cam01  = new Omega3D.cameras.FreeCamera;
+        cam02  = new Omega3D.cameras.FreeCamera;
+
+
+        var keylistener = new OMEGA.listeners.KeyListener;
+        Omega3D.AddKeyListener(keylistener);
+        cam01.SetListener( keylistener );
+
+
+
+
+        fbt = new Omega3D.FrameBufferTexture();
+
+        //scenes.
+        createScene01();
+        createScene02();
+
+
+        //render definition.
+        renderer = new Omega3D.WebGLRenderer;
+        chain    = new Omega3D.RenderChain();
+        chain.AddRenderPass( new RenderToTexturePass( renderer, scene02,cam02,fbt ));
+        chain.AddRenderPass( new RenderPass( renderer, scene01,cam01 ) );
+        renderer.SetRenderChain(chain);
+
+
+
+        render();
+    }
+
+
+    function createScene01(){
+        scene01 = new Omega3D.Scene;
+
+        var portal_mat = new Omega3D.ShaderMaterial({
+            uniforms:{
+                tex:{
+                    type:"sampler2D",
+                    value:fbt
+                }
+            },
+            vertex_src: document.getElementById( 'vertexshader' ).textContent,
+            fragment_src: document.getElementById( 'fragmentshader' ).textContent
+        });
+        var portal = new Omega3D.Object3D(new Omega3D.Mesh(new Omega3D.Geometry.SquareGeometry( 0.45,0.35 )), portal_mat);
+
+
+        var mat = new Omega3D.ShaderMaterial({
+            uniforms:{
+                tex2:{
+                    type:"samplerCube",
+                    value: new Omega3D.CubemapTexture([images[1],images[2],images[3],images[4],images[5],images[6]])
+                }
+            },
+            vertex_src: document.getElementById( 'cvertexshader' ).textContent,
+            fragment_src: document.getElementById( 'cfragmentshader' ).textContent
+        });
+        skybox = new Omega3D.Object3D(new Omega3D.Mesh(new Omega3D.Geometry.CubeGeometry( 10.0 )), mat);
+
+        scene01.addChild(portal);
+        scene01.addChild(skybox);
+
+        portal.SetPosition(0, 0, -2);
+    }
+
+
+    function createScene02(){
+        scene02 = new Omega3D.Scene;
+        var mat = new Omega3D.ShaderMaterial({
+            uniforms:{
+                tex:{
+                    type:"sampler2D",
+                    value: new Omega3D.BasicTexture(images[8])
+                }
+            },
+            vertex_src: document.getElementById( 'vertexshader' ).textContent,
+            fragment_src: document.getElementById( 'fragmentshader' ).textContent
+        });
+
+        o = new Omega3D.Object3D(new Omega3D.Mesh(new Omega3D.Geometry.TorusGeometry( 0.25 )), mat);
+        o.SetPosition(0, 0, -1);
+        scene02.addChild(o);
+    }
+
+    function render(){
+        requestAnimationFrame(render);
+        o.Rotate(0.005, 0.006, 0.01 );
+
+        renderer.render();
+    }
+
+</script>
+<body onload="init();">
+<canvas id="omega" width="800px" height="600px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

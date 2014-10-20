@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - None | Diffuse | Phong shading demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+</head>
+<script type="text/javascript">
+    var scene, cam, objects, renderer, chain;
+    function omega3DStart() {
+        //create basic setup.
+        scene   = new Omega3D.Scene();
+        cam    = new Omega3D.cameras.Camera();
+
+        //create light.
+        var light = new Omega3D.Light();
+        light.SetPosition( 0, 1, 2 );
+        scene.addLight(light);
+
+        //setup renderer and renderchain.
+        renderer = new Omega3D.WebGLRenderer;
+        chain    = new Omega3D.RenderChain;
+        chain.AddRenderPass( new Omega3D.RenderPass(renderer, scene, cam));
+        renderer.SetRenderChain(chain);
+
+        //create shaders.
+        var shader1   = new Omega3D.Shaders.Basic(false);
+        var shader2   = new Omega3D.Shaders.Diffuse(false);
+        var shader3   = new Omega3D.Shaders.Phong(false);
+        var texture  = new Omega3D.BasicTexture();
+
+        //create materials.
+        var material1 = new Omega3D.Material(shader1,[texture]);
+        var material2 = new Omega3D.Material(shader2,[texture]);
+        var material3 = new Omega3D.Material(shader3,[texture]);
+        var material4 = new Omega3D.Material(shader1,[texture]);
+        var material5 = new Omega3D.Material(shader2,[texture]);
+        var material6 = new Omega3D.Material(shader3,[texture]);
+
+        //create meshes.
+        var mesh1    = new Omega3D.Mesh( new Omega3D.Geometry.SphereGeometry(0.15) );
+        var mesh2    = new Omega3D.Mesh( new Omega3D.Geometry.TorusGeometry(0.15) );
+
+        //create and add objects.
+        objects = [];
+        var mats = [material1,material2,material3,material4,material5,material6];
+        for(var i =0; i< 6; i++){
+            var obj = new Omega3D.Object3D( i < 3 ? mesh1 : mesh2, mats[i]);
+            scene.addChild(obj);
+            objects.push(obj);
+        }
+
+        //place objects.
+        objects[0].SetPosition( -0.5, 0.25, -1.0);
+        objects[1].SetPosition(    0, 0.25, -1.0);
+        objects[2].SetPosition(  0.5, 0.25, -1.0);
+        objects[3].SetPosition(  -0.5, -0.25, -1.0);
+        objects[4].SetPosition(      0, -0.25, -1.0);
+        objects[5].SetPosition(  0.5, -0.25, -1.0);
+
+        //start rendering.
+        render();
+    }
+
+    function render() {
+        requestAnimationFrame(render);
+
+        //render scene.
+        renderer.render();
+    }
+</script>
+<body onload="omega3DStart();">
+<canvas id="omega" style="border: none;" width="800" height="600"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

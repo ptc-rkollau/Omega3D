@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Cubemap demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+</head>
+<script type="text/javascript">
+    var utils, scene, cam, img_urls, images, obj, renderer, chain;
+    function omega3DStart() {
+        //load images.
+        img_urls = [
+                  "images/posx.png",
+                  "images/negx.png",
+                  "images/posy.png",
+                  "images/negy.png",
+                  "images/posz.png",
+                  "images/negz.png"
+                 ];
+        utils = new OMEGA.Utils();
+        utils.LoadImages(img_urls, imagesLoaded);
+    }
+
+    function imagesLoaded( imgs ){
+        images = imgs;
+
+        //create basic setup.
+        scene    = new Omega3D.Scene();
+        cam      = new Omega3D.cameras.Camera();
+        renderer = new Omega3D.WebGLRenderer;
+        chain    = new Omega3D.RenderChain;
+
+        //create and set renderchain.
+        chain.AddRenderPass( new Omega3D.RenderPass(renderer,scene, cam));
+        renderer.SetRenderChain(chain);
+
+        //create material.
+        var shader   = new Omega3D.Shaders.CubeMap();
+        var texture  = new Omega3D.CubemapTexture(images);
+        var material = new Omega3D.Material(shader,[texture]);
+
+        //create object.
+        obj = new Omega3D.Cube( 0.25,material);
+
+        //set object position.
+        obj.SetPosition(0, 0, -1);
+
+        //add object to the scene.
+        scene.addChild(obj);
+
+        //start the render.
+        render();
+    }
+
+
+    function render() {
+        requestAnimationFrame(render);
+
+        //rotate the object.
+        obj.Rotate(0.01, 0.005, 0.001);
+
+        //render the scene.
+        renderer.render();
+    }
+
+
+
+</script>
+<body onload="omega3DStart();">
+<canvas id="omega" style="border: none;" width="800" height="600"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

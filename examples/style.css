@@ -1,0 +1,66 @@
+body{
+    margin-right:15px;
+    margin-left:0px;
+    margin-top:0px;
+    padding-left:0px;
+    padding-top:0px;
+}
+h2 {
+    margin-bottom:0px;
+
+}
+div {
+    font-family:Arial, Helvetica, sans-serif;
+}
+a{
+    color:green;
+}
+#ffbb {
+    position:relative;
+    left:45%;
+    width:200px;
+
+}
+a:visited {
+    color:red;
+}
+#omg {
+    position:relative;
+    width:320px;
+    top:8px;
+}
+#omg_small {
+    position:relative;
+    width:100px;
+    top:3px;
+}
+#love {
+    position:relative;
+    width:20px;
+    top:4px;
+    left:4px;
+}
+#omega {
+    min-height:3px;
+    width:100%;
+    background-color: black;
+    color:white;
+    padding-left:10px;
+    padding-top:10px;
+    padding-bottom:10px;
+    margin-bottom:5px;
+
+}
+#omega3d {
+    position:relative;
+    left:4px;
+    margin-bottom:75px;
+}
+#omegaaudio {
+    position:relative;
+    height:200px;
+    left:4px;
+}
+#updated:{
+
+}

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Framebuffer Texture demo</title>
+    <script language="JavaScript" src="../../../src/audio/Audio.js"></script>
+    <script language="JavaScript" src="../../../src/audio/Loader.js"></script>
+    <script language="JavaScript" src="../../../src/audio/Sound.js"></script>
+
+    <script language="JavaScript" src="../../../src/display3D/math/common.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/mat4.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/Vector3D.js"></script>
+    <script language="JavaScript" src="../../../src/utils/Utils.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/Omega3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Object3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cube.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cylinder.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Light.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Scene.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Sphere.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Torus.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Plane.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/Camera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/FreeCamera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/controllers/ShaderController.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/controllers/ImageController.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/Material.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Components.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/PostProcessingKernelShader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/PostProcessingShader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shaders.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/Texture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/BasicTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/CubemapTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/Mesh.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/Geometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CubeGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CylinderGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SphereGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SquareGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TorusGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TriangleGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/OBJParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/ColladaParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/WebGLRenderer.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/FrameBufferTexture.js"></script>
+
+</head>
+<script type="text/javascript">
+    var omega, renderer, scene, cam, light, object;
+    var fb_scene,fb_cam, fb_object,fb_objects, framebuffer_texture;
+    var fb_cam_focus = [0, 0, 0];
+    var dx = 0, dy = 0, dz = 0;
+    var cx = 0, cy = 0, cz = 0;
+    var timerCount = 0, count = 0, spread = 90.0;
+    var song;
+    var panner = OMEGA.Audio.ctx.createPanner();
+
+    function init(){
+        this.panner.coneOuterGain = 0.5;
+        this.panner.coneOuterAngle = 180;
+        this.panner.coneInnerAngle = 0;
+        OMEGA.Audio.LoadSounds([{id:"song", path:"sound/technodingetje.mp3"}], onSoundsLoaded);
+    }
+    function onSoundsLoaded(){
+        song = OMEGA.Audio.PlaySound("song", 0, this.panner);
+        omega  = new Omega3D();
+        cam    = new Omega3D.cameras.Camera;
+
+
+
+        var u = new OMEGA.Utils;
+        u.LoadImages([
+            "images/explosion.png",
+            "images/skybox/posx.jpg",
+            "images/skybox/negx.jpg",
+            "images/skybox/posy.jpg",
+            "images/skybox/negy.jpg",
+            "images/skybox/posz.jpg",
+            "images/skybox/negz.jpg"
+        ], onLoadComplete);
+    }
+
+    function onLoadComplete( images ){
+
+        //frame buffer texture.
+        framebuffer_texture = new Omega3D.FrameBufferTexture(800, 600);
+
+        //scenes.
+        createMainScene();
+        createFrameBufferTextureStuff(images);
+
+
+        //renderer.
+        renderer = new Omega3D.WebGLRenderer;
+        renderer.addRenderPass( new RenderPass( renderer, renderer.renderSceneToTexture, [fb_scene,fb_cam, framebuffer_texture] ) );
+        renderer.addRenderPass( new RenderPass( renderer, renderer.renderScene, [scene,cam ] ) );
+        render();
+    };
+
+
+
+    function createMainScene(){
+        scene = new Omega3D.Scene;
+        var shader  = new Omega3D.Shaders.Basic(true);
+        var texture = new Omega3D.BasicTexture;
+
+        object = new Omega3D.Object3D(new Omega3D.Mesh(new Omega3D.Geometry.SquareGeometry(800/600, 1 )), new Omega3D.Material(shader, framebuffer_texture));
+        object.SetPosition(0, 0, (-(600/800) - 0.14));
+        scene.addChild(object);
+    }
+
+    function createFrameBufferTextureStuff(img){
+        fb_scene  = new Omega3D.Scene();
+        var texture = new Omega3D.BasicTexture(img[0]);
+        var texture2 = new Omega3D.CubemapTexture([img[1],img[2],img[3],img[4],img[5],img[6]]);
+        var mat = new Omega3D.Material( new Omega3D.Shaders.Morph, texture);
+        var mat2 = new Omega3D.Material( new Omega3D.Shaders.CubeMap(true), texture2);
+
+
+        fb_object = new Omega3D.Cube(100, mat2 );
+        fb_scene.addChild(fb_object);
+        fb_objects = [];
+        var geom = new Omega3D.Geometry.SphereGeometry(3, 50, 50 );
+       // var geom = new Omega3D.Geometry.TorusGeometry(2 );
+        var mesh  = new Omega3D.Mesh( geom );
+        for( var i = 0; i < 50; i++){
+
+            fb_object = new Omega3D.Object3D(mesh, mat);
+            fb_object.SetPosition( Math.random() * spread - (spread/2),
+                                   Math.random() * spread - (spread/2),
+                                   Math.random() * spread  - (spread/2));
+            fb_object.Rotate( Math.random() * spread - (spread*0.5),Math.random() * spread - (spread*0.5), Math.random() * spread - (spread*0.5) );
+           // fb_object.drawType = Omega3D.Object3D.WIREFRAME;
+            fb_scene.addChild(fb_object);
+            fb_objects.push(fb_object);
+        }
+        fb_cam    = new Omega3D.cameras.Camera;
+        fb_cam_focus =fb_objects[0].GetPosition();
+        dx = fb_cam_focus[0];
+        dy = fb_cam_focus[1];
+        dz = fb_cam_focus[2];
+
+    }
+
+
+
+
+    function render(){
+        requestAnimationFrame(render);
+        var angle = scene.getTime();
+        var nx =  fb_cam_focus[0];
+        var ny =  fb_cam_focus[1];
+        var nz =  fb_cam_focus[2];
+
+
+        var halfSpread = spread;
+        if(dx != nx ) dx += (nx - dx) * 0.01;
+        if(dy != ny ) dy += (ny - dy) * 0.01;
+        if(dz != nz ) dz += (nz - dz) * 0.01;
+
+        if(cx != nx ) cx += (nx - cx) * 0.005;
+        if(cy != ny ) cy += (ny - cy) * 0.005;
+        if(cz != nz ) cz += (nz - cz) * 0.005;
+        fb_cam.LookAt(dx, dy, dz, [cx,cy, cz]);
+
+
+
+
+
+        renderer.render();
+        //console.log( OMEGA.Audio.getPeaksAtThreshold(song.getBuffer(), 0.9 ) );
+        timerCount++;
+       if(count >= fb_objects.length-1) count = 0;
+       if(timerCount == 300 ){
+            fb_cam_focus = fb_objects[++count].GetPosition();
+            console.log( fb_cam_focus, scene.getTime()%5 );
+           timerCount = 0;
+         //  this.panner.setPosition(fb_cam_focus[0]* 100,fb_cam_focus[1]* 100,-0.5 );
+        }
+
+
+
+    }
+
+</script>
+<body onload="init();">
+<canvas id="omega" width="800px" height="600px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Omega3D - Shapes demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+    <script type="text/javascript">
+        var utils;
+        var scene;
+        var camera;
+        var chain;
+        var renderer;
+
+        var shader;
+        var texture;
+        var material;
+
+        var geometry;
+        var mesh;
+
+        var objects;
+        var step = Math.PI * 2 / 4;
+        var angle = 0;
+
+        function omega3DStart() {
+            utils  = new OMEGA.Utils;
+            utils.LoadImages(["water.jpg"], onLoadComplete);
+
+        }
+        function onLoadComplete( images ){
+            var images = images;
+            scene  = new Omega3D.Scene();
+            camera = new Omega3D.cameras.Camera();
+
+            renderer = new Omega3D.WebGLRenderer;
+            chain    = new Omega3D.RenderChain;
+            chain.AddRenderPass( new Omega3D.RenderPass(renderer, scene, camera));
+            renderer.SetRenderChain(chain);
+
+            shader     = new Omega3D.Shaders.Basic(true);
+            texture    = new Omega3D.BasicTexture(images[0]);
+            material   = new Omega3D.Material(shader,[texture]);
+
+            objects    = new Array();
+            objects[0] = new Omega3D.Torus   ( 0.10, material);
+            objects[1] = new Omega3D.Sphere  ( 0.15, material);
+            objects[2] = new Omega3D.Cube    ( 0.10, material);
+            objects[3] = new Omega3D.Cylinder( 0.25, material);
+
+            for(var i = 0; i< objects.length; i++){
+                scene.addChild( objects[i] );
+            }
+
+            render();
+        }
+
+        function render(){
+            requestAnimationFrame( render );
+            for(var i = 0; i< objects.length; i++){
+                objects[i].SetPosition(Math.cos(angle + step * i) * 0.25,Math.sin(angle + step * i) *0.25,-1 );
+                objects[i].Rotate(0.01, 0.025, 0.01 );
+
+            }
+
+            renderer.render();
+            angle = scene.getTime()/2;
+        }
+
+
+    </script>
+</head>
+<body onload="omega3DStart();" >
+<canvas id="omega" style="border: none;" width="800" height="800"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

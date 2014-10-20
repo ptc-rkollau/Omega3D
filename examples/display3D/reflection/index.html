@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - SkyBox Reflection Texture demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+
+</head>
+<script type="text/javascript">
+    var omega, renderer, chain;
+    var scene,cam, object, gnome;
+
+    function init(){
+        omega  = new Omega3D();
+
+        var u = new OMEGA.Utils;
+        u.LoadImages([
+            "skybox_indoor/posx.jpg",
+            "skybox_indoor/negx.jpg",
+            "skybox_indoor/posy.jpg",
+            "skybox_indoor/negy.jpg",
+            "skybox_indoor/posz.jpg",
+            "skybox_indoor/negz.jpg"
+        ], onLoadComplete);
+    }
+
+    function onLoadComplete( images ){
+        //scenes.
+        createScene(images);
+
+        //renderer.
+        renderer = new Omega3D.WebGLRenderer;
+        chain    = new Omega3D.RenderChain;
+        chain.AddRenderPass( new RenderPass( renderer, scene,cam ) );
+        renderer.SetRenderChain(chain);
+        render();
+    }
+
+    function createScene(img){
+        scene                   = new Omega3D.Scene();
+        var texture             = new Omega3D.CubemapTexture(img);
+        var reflection_material = new Omega3D.Material( new Omega3D.Shaders.CubemapReflection, [texture]);
+        var skybox_material     = new Omega3D.Material( new Omega3D.Shaders.CubeMap, [texture]);
+
+        object = new Omega3D.Cube(100, skybox_material );
+        scene.addChild(object);
+
+        var objParser = new Omega3D.parsers.OBJParser();
+        var mesh      = objParser.ParseToMesh("gnome2.obj", 20);
+        gnome          = new Omega3D.Object3D(mesh, reflection_material);
+        gnome.SetPosition( 0, 0, -10);
+        scene.addChild(gnome);
+
+        cam    = new Omega3D.cameras.FreeCamera;
+
+        cam.SetSpeed( 0.5);
+
+        var k = new OMEGA.listeners.KeyListener;
+        cam.SetListener( k );
+        Omega3D.AddKeyListener(k);
+    }
+
+    function render(){
+        requestAnimationFrame(render);
+        gnome.Rotate(0, 0.01, 0);
+        renderer.render();
+    }
+
+</script>
+<body onload="init();">
+<canvas id="omega" width="800px" height="600px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

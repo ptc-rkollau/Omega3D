@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Draw type demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+</head>
+<script type="text/javascript">
+    var scene,cam, images, renderer, chain;
+    var objects = [];
+    function omega3DStart() {
+        //set the pointsize.
+        Omega3D.PointSize = 2.0;
+
+        //create basic setup.
+        scene    = new Omega3D.Scene();
+        cam      = new Omega3D.cameras.Camera;
+        renderer = new Omega3D.WebGLRenderer;
+        chain    = new Omega3D.RenderChain;
+
+        //create and set renderchain.
+        chain.AddRenderPass( new Omega3D.RenderPass(renderer,scene, cam));
+        renderer.SetRenderChain(chain);
+
+        //create material.
+        var texture  = new Omega3D.BasicTexture();
+        var shader   = new OMEGA.Omega3D.Shaders.Basic(false);
+        var mesh     = new Omega3D.Mesh( new Omega3D.Geometry.TorusGeometry(0.15, 0.08, 15, 10) );
+        var material = new Omega3D.Material(shader,[texture]);
+
+        //create objects.
+        objects[0]     = new Omega3D.Object3D( mesh,material);
+        objects[1]     = new Omega3D.Object3D( mesh,material);
+        objects[2]     = new Omega3D.Object3D( mesh,material);
+
+        //place objects.
+        objects[0].SetPosition(-0.5 + 0 * 0.5,0,-1.0);
+        objects[1].SetPosition(-0.5 + 1 * 0.5,0,-1.0);
+        objects[2].SetPosition(-0.5 + 2 * 0.5,0,-1.0);
+
+        //set objects drawtypes.
+        objects[0].drawType = Omega3D.Object3D.DEFAULT;
+        objects[1].drawType = Omega3D.Object3D.WIREFRAME;
+        objects[2].drawType = Omega3D.Object3D.POINTS;
+
+        //add objects to scene.
+        scene.addChild( objects[0]  );
+        scene.addChild( objects[1]  );
+        scene.addChild( objects[2]  );
+
+        //start the render.
+        render();
+    }
+
+    function render() {
+        requestAnimationFrame( render );
+
+        //rotate objects.
+        for(var i =0;i<objects.length;i++){
+           objects[i].Rotate(0.01, 0.01, 0.005);
+        }
+
+        //render scene.
+        renderer.render();
+    }
+
+
+
+</script>
+<body onload="omega3DStart();">
+<canvas id="omega" style="border: none;" width="800" height="500" ></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

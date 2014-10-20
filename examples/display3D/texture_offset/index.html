@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Texture offset demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+</head>
+<script type="x-shader/x-vertex" id="lavavertexshader">
+        uniform vec2 uOffset;
+        varying vec2 vTexCoord;
+        varying vec2 vOffset;
+        varying float vDot;
+        void main(void){
+            vec3 lightPosition = vec3(0.75, 0,-5);
+            vec4 pos = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
+            vec4 transNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+
+            gl_Position = pos;
+            vTexCoord   = aTextureCoord;
+            vOffset     = uOffset;
+            vDot = max(dot(transNormal.xyz,lightPosition), 0.075);
+        }
+</script>
+<script type="x-shader/x-vertex" id="lavafragmentshader">
+        varying vec2 vTexCoord;
+        varying vec2 vOffset;
+        uniform sampler2D tex;
+        varying float vDot;
+        void main(void){
+            float strength = 0.1;
+            vec4 color = texture2D(tex, vec2(vTexCoord.s - vOffset.y, vTexCoord.t - vOffset.x));
+            color += vec4(color.r * strength,color.g * strength,color.b * strength, 1);
+            gl_FragColor = vec4(color.xyz * vDot , color.a);
+        }
+</script>
+<script type="text/javascript">
+    var images, utils, omega, renderer,chain, scene01, cam01, mat, torus;
+    function init(){
+        utils = new OMEGA.Utils;
+        utils.LoadImages(["Lava.png"], onLoadDone);
+    }
+    function onLoadDone(imgs){
+        images = imgs;
+
+        //resize canvas.
+        var cnvs = document.getElementById("omega");
+        cnvs.width  = window.innerWidth - 5;
+        cnvs.height = window.innerHeight - 5;
+        Omega3D.Recalibrate();
+
+
+
+        //camera.
+        cam01  = new Omega3D.cameras.Camera;
+        cam01.SetPosition( 0, 0, -7);
+
+
+        //scene.
+        scene01 = new Omega3D.Scene;
+        mat = new Omega3D.ShaderMaterial({
+            uniforms:{
+                tex:{
+                    type:"sampler2D",
+                    value:new Omega3D.BasicTexture(images[0])
+                },
+                uOffset:{
+                    type:"vec2",
+                    value:[0, 0]
+                }
+            },
+            vertex_src: document.getElementById( 'lavavertexshader' ).textContent,
+            fragment_src: document.getElementById( 'lavafragmentshader' ).textContent
+        });
+        var torus_geom = new Omega3D.Geometry.TorusGeometry(1, 0.75);
+        torus = new Omega3D.Object3D(new Omega3D.Mesh(torus_geom), mat);
+        torus.SetRotation(1.2, 0, 0);
+        torus.SetScale(5, 5,5 );
+        scene01.addChild(torus);
+
+
+        //render definition.
+        renderer = new Omega3D.WebGLRenderer;
+        chain    = new Omega3D.RenderChain();
+        chain.AddRenderPass( new RenderPass( renderer,scene01,cam01));
+        renderer.SetRenderChain(chain);
+
+
+        //start render.
+        render();
+    }
+    function render(){
+        requestAnimationFrame(render);
+        mat.SetValue("uOffset", [scene01.getTime()/30.0, scene01.getTime()/30.0]);
+        renderer.render();
+    }
+
+</script>
+<body onload="init();" style="padding:0;margin:0;">
+<canvas id="omega" width="900px" height="900px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

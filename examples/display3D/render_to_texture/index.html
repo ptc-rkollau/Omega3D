@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Framebuffer Texture demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+</head>
+<script type="text/javascript">
+    var  renderer, chain, scene, cam, light, object;
+    var fb_scene, fb_object, framebuffer_texture;
+    function init(){
+        cam    = new Omega3D.cameras.Camera;
+        light  = new Omega3D.Light;
+        light.SetPosition(0,2,2);
+
+        //frame buffer texture.
+        framebuffer_texture = new Omega3D.FrameBufferTexture();
+
+
+        //scenes.
+        createFrameBufferTextureStuff();
+        createMainScene();
+
+
+        object.SetPosition(0, 0, -1);
+        fb_object.SetPosition(0, 0, -1);
+
+        //renderer.
+        renderer = new Omega3D.WebGLRenderer;
+        chain = new Omega3D.RenderChain;
+
+        chain.AddRenderPass( new RenderToTexturePass( renderer,fb_scene,cam, framebuffer_texture ) );
+        chain.AddRenderPass( new RenderPass( renderer, scene,cam ) );
+
+        renderer.SetRenderChain(chain);
+        render();
+    }
+    function createMainScene(){
+        scene  = new Omega3D.Scene();
+        object = new Omega3D.Cube(0.25, new Omega3D.Material( new Omega3D.Shaders.Diffuse(true), [framebuffer_texture] ));
+
+        scene.addLight(light);
+        scene.addChild(object);
+    }
+    function createFrameBufferTextureStuff(){
+        fb_scene  = new Omega3D.Scene();
+        fb_object = new Omega3D.Torus(0.25, new Omega3D.Material( new Omega3D.Shaders.Phong(false), [new Omega3D.BasicTexture]));
+
+        fb_scene.setColor(0.5,0.5,0);
+        fb_scene.addLight(light);
+        fb_scene.addChild(fb_object);
+    }
+
+
+    function render(){
+        requestAnimationFrame(render);
+        object.Rotate( 0.005,0.006, 0);
+        fb_object.Rotate( 0.01, 0.03, 0);
+        renderer.render();
+    }
+
+</script>
+<body onload="init();">
+<canvas id="omega" width="800px" height="600px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Omega3D - FreeCamera demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+    <script type="text/javascript">
+        var utils;
+        var scene;
+        var camera;
+        var renderer;
+        var chain;
+        var keyListener;
+
+        var objects;
+        var spread = 300;
+
+
+
+        function omega3DStart() {
+            //load images.
+            utils  = new OMEGA.Utils;
+            utils.LoadImages(["fire.jpg",
+                              "images/px.jpg",
+                              "images/nx.jpg",
+                              "images/py.jpg",
+                              "images/ny.jpg",
+                              "images/pz.jpg",
+                              "images/nz.jpg"], onLoadComplete);
+
+        }
+        function onLoadComplete( images ){
+            //create free camera setup
+            scene  = new Omega3D.Scene();
+            camera = new Omega3D.cameras.FreeCamera();
+            camera.SetSpeed(1.0);
+
+            //add key listener for the free camera.
+            keyListener = new OMEGA.listeners.KeyListener;
+            camera.SetListener(keyListener);
+            Omega3D.AddKeyListener(keyListener);
+
+            //create materials.
+            var shader     = new Omega3D.Shaders.Basic(false);
+            var texture    = new Omega3D.BasicTexture();
+            var material   = new Omega3D.Material(shader, [texture]);
+
+            var shaderSky   = new Omega3D.Shaders.CubeMap();
+            var textureSky  = new Omega3D.CubemapTexture([images[1],images[2],images[3],images[4],images[5],images[6]]);
+            var materialSky = new Omega3D.Material(shaderSky, [textureSky]);
+            var meshSky = new Omega3D.Mesh( new Omega3D.Geometry.CubeGeometry(250.0) );
+
+            //create object meshes.
+            var meshes = [ new Omega3D.Mesh( new Omega3D.Geometry.CubeGeometry ),
+                           new Omega3D.Mesh( new Omega3D.Geometry.TorusGeometry ),
+                           new Omega3D.Mesh( new Omega3D.Geometry.CylinderGeometry )];
+
+            //create sky box.
+            objects    = new Array();
+            objects[0] = new Omega3D.Object3D(meshSky, materialSky);
+            scene.addChild( objects[0] );
+
+            //create, add, scale and place objects.
+            for(var i = 1; i< 1500; i++){
+                objects[i] = new Omega3D.Object3D( meshes[i%3], material );
+                objects[i].SetPosition(Math.random() * spread - (spread/2),Math.random() * spread - (spread/2),Math.random() * spread- (spread/2));
+                objects[i].SetScale(2,2,2);
+                scene.addChild( objects[i] );
+            }
+
+            //setup renderer and renderchain.
+            renderer = new Omega3D.WebGLRenderer;
+            chain    = new Omega3D.RenderChain;
+            chain.AddRenderPass( new Omega3D.RenderPass(renderer,scene, camera));
+            renderer.SetRenderChain(chain);
+
+            //start the render.
+            render();
+        }
+
+        function render(){
+            requestAnimationFrame( render );
+
+            //render scene.
+           renderer.render();
+        }
+
+
+    </script>
+</head>
+<body onload="omega3DStart();" >
+<canvas id="omega" style="border: none;" width="800" height="800"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

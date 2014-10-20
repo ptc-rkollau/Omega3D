@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Framebuffer Texture demo</title>
+    <script language="JavaScript" src="../../../src/display3D/math/common.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/mat4.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/Vector3D.js"></script>
+    <script language="JavaScript" src="../../../src/utils/Utils.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/Omega3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Object3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cube.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cylinder.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Light.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Scene.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Sphere.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Torus.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/Camera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/FreeCamera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/controllers/ShaderController.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/controllers/ImageController.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/Material.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Components.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/PostProcessingKernelShader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/PostProcessingShader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shaders.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/Texture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/BasicTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/CubemapTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/Mesh.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/Geometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CubeGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CylinderGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SphereGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SquareGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TorusGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TriangleGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/OBJParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/ColladaParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/WebGLRenderer.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/FrameBufferTexture.js"></script>
+
+</head>
+<script type="text/javascript">
+    var omega, renderer, scene, cam, light, object;
+    var fb_scene,fb_cam, fb_object, framebuffer_texture;
+    function init(){
+        omega  = new Omega3D();
+        cam    = new Omega3D.cameras.Camera;
+        light  = new Omega3D.Light;
+        light.SetPosition(0,2,2);
+
+
+        //frame buffer texture.
+        framebuffer_texture = new Omega3D.FrameBufferTexture(800, 600);
+
+        //scenes.
+        createMainScene();
+        createFrameBufferTextureStuff();
+
+
+        //renderer.
+        renderer = new Omega3D.WebGLRenderer;
+        renderer.addRenderPass( new RenderPass( renderer, renderer.renderSceneToTexture, [fb_scene,fb_cam, framebuffer_texture] ) );
+        renderer.addRenderPass( new RenderPass( renderer, renderer.renderScene, [scene,cam ] ) );
+       // renderer.addRenderPass( new RenderPass( renderer, renderer.renderScene, [fb_scene,fb_cam] ) );
+        render();
+    }
+
+    function createMainScene(){
+        scene = new Omega3D.Scene;
+        var shader  = new Omega3D.Shaders.PostProcessing;
+        var texture = new Omega3D.BasicTexture;
+
+        object = new Omega3D.Object3D(new Omega3D.Mesh(new Omega3D.Geometry.SquareGeometry(800/600, 1 )), new Omega3D.Material(shader, framebuffer_texture));
+        scene.addChild(object);
+    }
+
+    function createFrameBufferTextureStuff(){
+        fb_scene  = new Omega3D.Scene();
+        var mat = new Omega3D.Material( new Omega3D.Shaders.Morph, new Omega3D.BasicTexture);
+        fb_object = new Omega3D.Torus(0.25, mat);
+        fb_cam    = new Omega3D.cameras.Camera;
+
+        fb_scene.addLight(light);
+        fb_scene.addChild(fb_object);
+    }
+
+
+
+    function render(){
+        requestAnimationFrame(render);
+
+        fb_object.SetPosition(0, 0, -1);
+        object.SetPosition(0, 0, (-(600/800) - 0.14));
+        fb_object.Rotate( fb_scene.getTime()/4, fb_scene.getTime()/2, 0);
+
+        renderer.render();
+    }
+
+</script>
+<body onload="init();">
+<canvas id="omega" width="800px" height="600px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

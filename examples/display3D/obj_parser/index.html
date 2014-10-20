@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - OBJ File Parser demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+</head>
+<script type="text/javascript">
+    var utils;
+    var scene;
+    var camera;
+    var light;
+    var objects;
+    var objParser;
+    var renderer;
+    var chain;
+
+    function omega3DStart() {
+        objParser = new Omega3D.parsers.OBJParser();
+        utils     = new OMEGA.Utils;
+        utils.LoadImages(["Map-COL.jpg"], onLoadComplete);
+    }
+    function onLoadComplete( images ){
+        scene  = new Omega3D.Scene();
+        camera = new Omega3D.cameras.Camera();
+
+        light  = new Omega3D.Light();
+        light.SetPosition( 0,0,2 );
+        scene.addLight(light);
+
+        renderer = new Omega3D.WebGLRenderer;
+        chain = new Omega3D.RenderChain;
+        chain.AddRenderPass( new Omega3D.RenderPass(renderer,scene, camera));
+        renderer.SetRenderChain( chain );
+
+        objects    = new Array();
+        objects[0] = objParser.ParseToObject3D("head.obj"  , 0.1, new Omega3D.Material(new Omega3D.Shaders.Diffuse(true), [new Omega3D.BasicTexture(images[0])] ));
+        objects[1] = objParser.ParseToObject3D("gnome2.obj", 1.0, new Omega3D.Material(new Omega3D.Shaders.Phong(false), [new Omega3D.BasicTexture()]));
+
+        for(var i = 0; i< objects.length; i++){
+            scene.addChild( objects[i] );
+            objects[i].SetPosition(-0.3+i*0.75, 0, -1.5  );
+        }
+        render();
+    }
+
+
+
+    function render(){
+        requestAnimationFrame( render );
+        for(var i = 0; i< objects.length; i++){
+            objects[i].Rotate( 0, 0.01,  0 );
+        }
+        renderer.render();
+    }
+
+
+</script>
+<body onload="omega3DStart();">
+<canvas id="omega" width="800" height="800"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>
