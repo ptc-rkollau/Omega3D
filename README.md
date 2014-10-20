@@ -5,6 +5,16 @@
 * Current stable version: **0.0.1.3 Alpha**
 * [Learn more here!](http://lab.rackdoll.nl/js/omega/)
 
+### Features ###
+* Optimized linkedlist batch rendering.
+* Customizable RenderPasses.
+* RenderChains, for rendering control.
+* Build-in geometries ( Cube, Sphere, Torus, Cilinder, Square ), support for custom geometries.
+* Build-in Shaders and support for custom shaders.
+* Texture support: BasicTextures, CubemapTextures and FrameBufferTextures.
+* Material support: Material, ShaderMaterial ( both support use of multiple textures )
+* Build-in pseudo static pipeline ( beginners ) and pseudo dynamic pipeline ( novice )
+
 ### How ? ###
 * Go to the **examples -> display3D** folder for examples.
 * A good place to start is the **geometry** demo.
@@ -34,15 +44,7 @@ renderer.SetRenderChain(chain);
 renderer.render();
 ```
 
-### Features ###
-* Optimized linkedlist batch rendering.
-* Customizable RenderPasses.
-* RenderChains, for rendering control.
-* Build-in geometries ( Cube, Sphere, Torus, Cilinder, Square ), support for custom geometries.
-* Build-in Shaders and support for custom shaders.
-* Texture support: BasicTextures, CubemapTextures and FrameBufferTextures.
-* Material support: Material, ShaderMaterial ( both support use of multiple textures )
-* Build-in pseudo static pipeline ( beginners ) and pseudo dynamic pipeline ( novice )
+
 
 ### Who do I talk to? ###
 
