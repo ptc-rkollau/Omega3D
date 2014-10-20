@@ -10,7 +10,7 @@
 * Customizable RenderPasses.
 * RenderChains, for rendering control.
 * FrameBuffer and StencilBuffer support.
-* Textures, Multi textures and Cubemap support.
+* Textures, Multi textures, Video textures and Cubemap support.
 * Build-in geometries ( Cube, Sphere, Torus, Cilinder, Square ), support for custom geometries.
 * Build-in Shaders and support for custom shaders.
 * Build-in pseudo static pipeline ( beginners ) and pseudo dynamic pipeline ( novice )
