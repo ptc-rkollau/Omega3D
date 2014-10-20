@@ -1,4 +1,4 @@
-# OMEGA3D - WebGL 3D Rendering Library#
+# Omega3D - WebGL 3D Rendering Library#
 
 ### What ?  ###
 * Javascript WebGL 3D rendering library.
