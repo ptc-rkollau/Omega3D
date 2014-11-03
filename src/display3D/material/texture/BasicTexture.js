@@ -7,7 +7,7 @@ function BasicTexture( img, needsUpdate, ID ){
             if(image)this.gl_context.texImage2D(this.gl_context.TEXTURE_2D, 0, this.gl_context.RGBA, this.gl_context.RGBA, this.gl_context.UNSIGNED_BYTE, image);
             this.gl_context.texParameteri(this.gl_context.TEXTURE_2D, this.gl_context.TEXTURE_MAG_FILTER, this.gl_context.NEAREST);
             this.gl_context.texParameteri(this.gl_context.TEXTURE_2D, this.gl_context.TEXTURE_MIN_FILTER, this.gl_context.NEAREST);
-            if(image)this.gl_context.generateMipmap(this.gl_context.TEXTURE_2D);
+            if(image && this.IsPowerOf2(image.width) && isPowerOf2(image.height) ) this.gl_context.generateMipmap(this.gl_context.TEXTURE_2D);
             this.gl_context.bindTexture(this.gl_context.TEXTURE_2D, null);
         }else {
             this.gl_context.bindTexture(this.gl_context.TEXTURE_2D, texture);
@@ -23,6 +23,7 @@ function BasicTexture( img, needsUpdate, ID ){
         if(shader && this.img){
             this.gl_context.uniform1i(shader.GetSamplerLocation(this.tex_id), this.ID );
         }
+
     };
     this.Disable = function(){
         this.gl_context.bindTexture(this.gl_context.TEXTURE_2D, null);

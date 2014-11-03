@@ -13,7 +13,6 @@ function Object3D( mesh, material ){
     this.modelView = mat4.create();
     mat4.identity(this.modelView);
 
-
     this.mesh     = mesh;
     this.material = material;
     this.drawType =  OMEGA.Omega3D.Object3D.DEFAULT;
@@ -64,7 +63,7 @@ function Object3D( mesh, material ){
         this.position = [x, y, z];
 
         mat4.identity(this.tMatrix);
-        mat4.translate( this.tMatrix, this.tMatrix, this.position );
+        mat4.translate(this.tMatrix, this.tMatrix, this.position );
     };
     this.Translate = function( x, y, z ){
         this.position[0] += x;
@@ -100,6 +99,9 @@ function Object3D( mesh, material ){
         this.rotation[2] += value;
         mat4.rotate( this.rMatrix, this.rMatrix, this.rotation[2], [0.0, 0.0, 1.0] );
     };
+
+    this.Update     = function(gl,camera){ };
+    this.LateUpdate = function(gl,camera){ };
 
 
     this.toString = function(){

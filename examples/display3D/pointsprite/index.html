@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Point Sprite demo</title>
+    <!-- <script language="JavaScript" src="../../../src/display3D/math/mat3.js"></script>-->
+    <script language="JavaScript" src="../src/Omega3d.min.v0014.js"></script>
+    <!--<script language="JavaScript" src="../../../src/display3D/math/common.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/math/mat4.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/math/Vector3D.js"></script>
+   <script language="JavaScript" src="../../../src/utils/Utils.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/Omega3D.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/display/Object3D.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/display/LODObject3D.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/display/Cube.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/display/Cylinder.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/display/Light.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/display/Scene.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/display/Sphere.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/display/Torus.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/display/ParticleEmitter.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/camera/Camera.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/camera/FreeCamera.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/material/Material.js"></script>
+
+   <script language="JavaScript" src="../../../src/display3D/material/ShaderMaterial.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/material/shader/Components.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/material/shader/Shader.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/material/shader/Shaders.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/material/texture/Texture.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/material/texture/BasicTexture.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/material/texture/CubemapTexture.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/mesh/Mesh.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/mesh/geometry/Geometry.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CubeGeometry.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CylinderGeometry.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SphereGeometry.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SquareGeometry.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TorusGeometry.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TriangleGeometry.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/parsers/OBJParser.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/parsers/ColladaParser.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/renderer/WebGLRenderer.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/renderer/Pass.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/renderer/RenderPass.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/renderer/RenderToTexturePass.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/renderer/RenderChain.js"></script>
+   <script language="JavaScript" src="../../../src/display3D/material/texture/FrameBufferTexture.js"></script>
+   <script language="JavaScript" src="../../../src/listeners/KeyListener.js"></script>-->
+</head>
+<script type="x-shader/x-vertex" id="vertexshader">
+       varying vec2 vTexCoord;
+       varying float flag;
+       void main(void){
+
+           vec4 pos  = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
+           float val =  150.0 -(pos.z*0.15);
+           gl_PointSize = clamp(val, 0.0, 150.0);
+           gl_Position = pos;
+           vTexCoord = aTextureCoord;
+           flag = clamp(val, 0.0, 1.0);
+       }
+</script>
+<script type="x-shader/x-vertex" id="fragmentshader">
+       uniform sampler2D tex;
+        varying vec2 vTexCoord;
+         varying float flag;
+       void main(void){
+           vec4 color = texture2D(tex, gl_PointCoord);
+           gl_FragColor = color * flag;
+       }
+</script>
+<script type="text/javascript">
+   var renderer, scene, cam, object, chain, mat, images;
+   function init(){
+       utils = new OMEGA.Utils();
+       utils.LoadImages([ "star.jpg", "../../images/skyboxes/space_01/skybox_left.png",
+                          "../../images/skyboxes/space_01/skybox_right.png",
+                          "../../images/skyboxes/space_01/skybox_up.png",
+                          "../../images/skyboxes/space_01/skybox_down.png",
+                         "../../images/skyboxes/space_01/skybox_front.png",
+                         "../../images/skyboxes/space_01/skybox_back.png", "planet2.png"], onLoadDone);
+   }
+
+
+   function onLoadDone(imgs){
+       images = imgs;
+       cam    = new Omega3D.cameras.FreeCamera;
+       cam.SetSpeed(1.25);
+
+       //add key listener for the free camera.
+       var keyListener = new OMEGA.listeners.KeyListener;
+       cam.SetListener(keyListener);
+       Omega3D.AddKeyListener(keyListener);
+
+       //scenes.
+       createMainScene();
+
+       //renderer.
+       renderer = new Omega3D.WebGLRenderer();
+       chain    = new Omega3D.RenderChain();
+
+       chain.AddRenderPass( new RenderPass( renderer, scene,cam  ) );
+       renderer.SetRenderChain(chain);
+
+       render();
+   }
+
+   function createMainScene(){
+       scene = new Omega3D.Scene;
+       mat   = new Omega3D.ShaderMaterial({
+           uniforms:{
+               tex:{
+                   type:"sampler2D",
+                   value:new Omega3D.BasicTexture(images[0])
+               }
+           },
+           vertex_src:document.getElementById( 'vertexshader' ).textContent,
+           fragment_src:document.getElementById( 'fragmentshader' ).textContent
+       });
+
+       var mat2   = new Omega3D.ShaderMaterial({
+           uniforms:{
+               tex:{
+                   type:"sampler2D",
+                   value:new Omega3D.BasicTexture(images[7])
+               }
+           },
+           vertex_src:document.getElementById( 'vertexshader' ).textContent,
+           fragment_src:document.getElementById( 'fragmentshader' ).textContent
+       });
+
+
+       var tex = new Omega3D.CubemapTexture([images[1],images[2],images[3],images[4],images[5],images[6]]);
+       var sha = new Omega3D.Shaders.CubeMap();
+       var space_mat = new Omega3D.Material(sha, [tex]);
+       var geom = new Omega3D.Geometry.CubeGeometry( 1.0 );
+       var mesh = new Omega3D.Mesh(geom);
+       var skybox = new Omega3D.Object3D(mesh,space_mat);
+       skybox.SetScale( 5000, 5000, 5000);
+
+       scene.addChild(skybox);
+
+       var emitter  = new Omega3D.Particles.ParticleEmitter(mat);
+       var emitter2  = new Omega3D.Particles.ParticleEmitter(mat2);
+       var particles = new Array();
+       var particles2 = new Array();
+       var spread = 2500.0;
+       for( var i = 0; i < 25000; i++){
+           var xpos = Math.random() * spread - (spread/2);
+           var ypos = Math.random() * spread - (spread/2);
+           var zpos = Math.random() * spread - (spread/2);
+           particles.push( xpos,ypos, zpos);
+       }
+       for( var i = 0; i < 500; i++){
+           var xpos = Math.random() * spread - (spread/2);
+           var ypos = Math.random() * spread - (spread/2);
+           var zpos = Math.random() * spread - (spread/2);
+           particles2.push( xpos,ypos, zpos);
+       }
+       emitter.AddParticles(particles);
+       emitter2.AddParticles(particles2);
+       scene.addChild(emitter);
+       scene.addChild(emitter2);
+   }
+
+
+   function render(){
+       requestAnimationFrame(render);
+       renderer.render();
+   }
+
+</script>
+<body onload="init();">
+<canvas id="omega" width="800px" height="600px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+<div style="top:10px;left:590px;color:#fff;position:absolute;"><b>Point sprite Demo</b><br>300.000x Point sprites<br>Use WSAD and arrows to navigate</div>
+</body>
+</html>

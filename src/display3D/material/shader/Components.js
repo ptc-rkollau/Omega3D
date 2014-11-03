@@ -22,7 +22,7 @@ OMEGA.Omega3D.Shaders.Components.Basic_Includes = function(){
         "uniform mat4 uProjectionMatrix;"+
         "uniform mat4 uViewMatrix;"+
         "uniform mat4 uInvViewMatrix;"+
-        "uniform mat4 uNormalMatrix;";
+        "uniform mat3 uNormalMatrix;";
     return script;
 };
 OMEGA.Omega3D.Shaders.Components.Basic_Includes_Post_Processing = function(){
@@ -34,11 +34,14 @@ OMEGA.Omega3D.Shaders.Components.Basic_Includes_Post_Processing = function(){
     "uniform mat4 uModelMatrix;"+
     "uniform mat4 uProjectionMatrix;"+
     "uniform mat4 uViewMatrix;"+
-    "uniform mat4 uNormalMatrix;";
+    "uniform mat3 uNormalMatrix;";
     return script;
 };
 
 OMEGA.Omega3D.Shaders.Components.Vertex_World_Conversion_V3 = function( target, subject ){
+    return target + " = uProjectionMatrix * uViewMatrix * uModelMatrix *    vec4("+subject+", 1.0);";
+};
+OMEGA.Omega3D.Shaders.Components.Vertex_View_Conversion_V3 = function( target, subject ){
     return target + " = uProjectionMatrix * uViewMatrix * uModelMatrix *    vec4("+subject+", 1.0);";
 };
 OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic = function( color ){
@@ -170,8 +173,8 @@ OMEGA.Omega3D.Shaders.Components.Basic_Diffuse_Vertex_Logic = function(){
     var script =
         "vPositionEye4 = gl_Position;" +
         //"vec4 temp = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(uLightPosition, 1.0);" +
-        "vec4 temp = uNormalMatrix * vec4(aVertexNormal,0.0);" +
-        "vNormalEye = normalize(temp.xyz);";
+        "vec3 temp = uNormalMatrix *aVertexNormal;" +
+        "vNormalEye = normalize(temp);";
     return script;
 };
 OMEGA.Omega3D.Shaders.Components.Basic_Diffuse_Fragment_Logic = function( color ){

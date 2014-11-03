@@ -2,7 +2,8 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>Omega3d - Framebuffer Texture demo</title>
+    <title>Omega3d - Normalmap demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
     <script language="JavaScript" src="../../../src/display3D/math/mat3.js"></script>
     <!--<script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>-->
     <script language="JavaScript" src="../../../src/display3D/math/common.js"></script>
@@ -11,7 +12,6 @@
     <script language="JavaScript" src="../../../src/utils/Utils.js"></script>
     <script language="JavaScript" src="../../../src/display3D/Omega3D.js"></script>
     <script language="JavaScript" src="../../../src/display3D/display/Object3D.js"></script>
-    <script language="JavaScript" src="../../../src/display3D/display/LODObject3D.js"></script>
     <script language="JavaScript" src="../../../src/display3D/display/Cube.js"></script>
     <script language="JavaScript" src="../../../src/display3D/display/Cylinder.js"></script>
     <script language="JavaScript" src="../../../src/display3D/display/Light.js"></script>
@@ -42,120 +42,112 @@
     <script language="JavaScript" src="../../../src/display3D/renderer/WebGLRenderer.js"></script>
     <script language="JavaScript" src="../../../src/display3D/renderer/Pass.js"></script>
     <script language="JavaScript" src="../../../src/display3D/renderer/RenderPass.js"></script>
-    <script language="JavaScript" src="../../../src/display3D/renderer/RenderToTexturePass.js"></script>
     <script language="JavaScript" src="../../../src/display3D/renderer/RenderChain.js"></script>
     <script language="JavaScript" src="../../../src/display3D/material/texture/FrameBufferTexture.js"></script>
     <script language="JavaScript" src="../../../src/listeners/KeyListener.js"></script>
+
 </head>
 <script type="x-shader/x-vertex" id="vertexshader">
-        uniform float uTime;
-        uniform vec2 uResolution;
-        varying vec2 vResolution;
-        varying float vTime;
+        uniform vec3 light01Pos;
+        uniform vec3 light01Color;
+        varying vec2 vTexCoord;
+        varying vec3 vLightWeight;
+        varying vec3 vLightPos;
+        varying vec3 vNormal;
+        varying vec3 vPos;
+
+
         void main(void){
-            vec4 mvPos  = vec4(aVertexPos.xyz, 1.0);
-            gl_Position = mvPos;
-            vResolution = uResolution;
-            vTime = uTime;
+            vec4 mvPos      = uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
+            vec4 mvLight01  = uViewMatrix * vec4(light01Pos.xyz, 1.0);
+            vec3    tNormal = uNormalMatrix * aVertexNormal;
+            gl_Position     = uProjectionMatrix * mvPos;
+
+            vTexCoord   = aTextureCoord;
+            vLightPos   = mvLight01.xyz;
+            vPos        = mvPos.xyz;
+            vNormal     = tNormal;
         }
 </script>
 <script type="x-shader/x-vertex" id="fragmentshader">
-        varying vec2 vResolution;
-        varying float vTime;
-
-        float plane( vec3 ro, vec3 rd ){
-            return -ro.y/rd.y;
-        }
-        float intersect( vec3 ro, vec3 rd ){
-            float t = -1.0;
-            float pl = plane( ro, rd );
-            if(pl>0.0){
-                t = pl;
-            }
-            return t;
-        }
+        uniform sampler2D tex;
+        varying vec2 vTexCoord;
+        varying vec3 vLightWeight;
+        varying vec3 vLightPos;
+        varying vec3 vPos;
+        varying vec3 vNormal;
 
         void main(void){
-            vec2 pos    = gl_FragCoord.xy / vResolution.xy;
-
-
-            //ray
-            vec3 ray_origin = vec3( 0.0, 0.5, 3.0);
-            vec3 ray_direction = normalize( vec3( (-1.0 + 2.0 * pos) * vec2(1.78, 1.0), -1.0) );
-            float t = intersect(ray_origin, ray_direction);
-
-            vec3 color = vec3(0.0, 0.0, 0.0 );
-            if( t > 0.5 ){
-                color = vec3(1.0, 0.0, 0.0);
-            }
-
-
-
-            gl_FragColor = vec4( color, 1.0);
+            vec3 color   = vec3(0.8, 0.4, 0);
+            vec3 normal  = texture2D(tex, vec2(vTexCoord.s, vTexCoord.t)).rgb * 2.0 - 1.0;
+            vec3 n       = normalize(vNormal + normal);
+            vec3  light01Dir       = normalize( vLightPos.xyz - vPos.xyz );
+            float dirLight01Weight = max(dot(n, light01Dir), 0.0);
+            vec3 ambientColor      = vec3( 0, 0, 0 );
+            vec3 light01FinalColor =  color * dirLight01Weight;
+            gl_FragColor = vec4( ambientColor + light01FinalColor , 1.0);
         }
 </script>
 <script type="text/javascript">
-    var omega, renderer, scene, cam, light, object, chain, mat;
+    var images;
+    var scene, cam, renderer, chain, mat;
+    var cube;
     function init(){
-        omega  = new Omega3D();
-        cam    = new Omega3D.cameras.Camera;
-
-
-
-        //scenes.
-        createMainScene();
-
-
-
-        //renderer.
-        renderer = new Omega3D.WebGLRenderer();
-        chain    = new Omega3D.RenderChain();
-
-        chain.AddRenderPass( new RenderPass( renderer, scene,cam  ) );
-        renderer.SetRenderChain(chain);
-
-        render();
-
+        //load images.
+        var utils = new OMEGA.Utils;
+        utils.LoadImages(["normal_4.png"], onLoadDone);
     }
 
-    function createMainScene(){
-        scene = new Omega3D.Scene;
-        mat = new Omega3D.ShaderMaterial({
-            uniforms:{
-                uResolution:{
-                    type:"vec2",
-                    value:[800, 600]
-                },
-                uTime:{
-                    type:"float",
-                    value:[0.0]
-                }
+    function onLoadDone( imgs ){
+        images = imgs;
 
+        //setup scene.
+        scene = new Omega3D.Scene();
+        cam   = new Omega3D.cameras.Camera();
+        mat   = new Omega3D.ShaderMaterial({
+            uniforms: {
+                tex:{
+                    type:"sampler2D",
+                    value:new Omega3D.BasicTexture(images[0])
+                },
+
+                light01Pos:{
+                    type:"vec3",
+                    value:[0, 0, 3]
+                },
+                light01Color:{
+                    type:"vec3",
+                    value:[1, 1, 1]
+                }
             },
             vertex_src:document.getElementById( 'vertexshader' ).textContent,
             fragment_src:document.getElementById( 'fragmentshader' ).textContent
         });
+        var geom = new Omega3D.Geometry.CubeGeometry(1, 100, 100);
+        var mesh = new Omega3D.Mesh( geom );
+        cube    = new Omega3D.Object3D( mesh, mat );
+        cube.SetRotation(0, Math.PI/4, 0);
+        scene.addChild(cube);
 
-        object = new Omega3D.Object3D(new Omega3D.Mesh(new Omega3D.Geometry.SquareGeometry(1, 1 )), mat);
-        scene.addChild(object);
+        cam.LookAt( 0, 0, 0, [0, 0, 3]);
 
-        cam.SetPosition(0, 0, -3);
-        console.log( object);
+
+        //setup renderer.
+        renderer = new Omega3D.WebGLRenderer();
+        chain    = new Omega3D.RenderChain();
+        chain.AddRenderPass( new RenderPass( renderer, scene, cam ));
+        renderer.SetRenderChain(chain);
+        render();
     }
-
-
-
 
     function render(){
         requestAnimationFrame(render);
-
-        mat.SetValue("uTime", scene.getTime()*2);
+        cube.SetRotation( scene.getTime()/5, Math.cos(scene.getTime()/5), scene.getTime()/5);
         renderer.render();
     }
-
 </script>
 <body onload="init();">
-<canvas id="omega" width="800px" height="600px"></canvas>
+<canvas id="omega" style="border: none;" width="800" height="500" ></canvas>
 <img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
 </body>
 </html>

@@ -5,7 +5,7 @@ function Camera(){
     var laMatrix = mat4.create();
 
     this.GetProjectionMatrix = function(){
-        mat4.perspective(projectionMatrix, 45, OMEGA.Omega3D.GL.viewPortWidth / OMEGA.Omega3D.GL.viewPortHeight,  0.1, 1000.0 );
+        mat4.perspective(projectionMatrix, 45, OMEGA.Omega3D.GL.viewPortWidth / OMEGA.Omega3D.GL.viewPortHeight,  0.1, 10000.0 );
         return projectionMatrix;
     };
     this.GetMatrix    = function(){

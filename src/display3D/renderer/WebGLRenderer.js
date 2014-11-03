@@ -137,7 +137,6 @@ function WebGLRenderer( debugRender ){
             }
 
             if(scene.getLights().length > 0 ) renderLight( scene, mat );
-
             var current = this.list[id].head;
             while(current){
                 if(current.mayRender) {
@@ -154,20 +153,25 @@ function WebGLRenderer( debugRender ){
     };
 
     var renderObject = function( gl, current, mat, camera ){
+        current.Update(gl,camera);
+        if(current instanceof LODObject3D) current.adjustLODLevel(camera);
+
         var p = mat.GetShader().GetProgram();
 
         /* model matrix */
         gl.uniformMatrix4fv( p.uModelMatrix , false, current.GetMatrix() );
 
         /* normal matrix */
-        var normalMatrix = mat4.create();
-        mat4.multiply(normalMatrix, current.GetMatrix(), camera.GetMatrix() );
-        mat4.invert(normalMatrix,normalMatrix );
-        mat4.transpose(normalMatrix, normalMatrix);
-        gl.uniformMatrix4fv( p.uNormalMatrix, false, normalMatrix );
+        var normalMatrix4 = mat4.create();
+        var normalMatrix3 = mat3.create();
+        mat4.multiply(normalMatrix4, current.GetMatrix(), camera.GetMatrix() );
+        mat3.fromMat4(normalMatrix3, normalMatrix4 );
+        mat3.invert(normalMatrix3,normalMatrix3 );
+        mat3.transpose(normalMatrix3,normalMatrix3);
+        gl.uniformMatrix3fv( p.uNormalMatrix, false, normalMatrix3 );
+
+        /* point size */
         gl.uniform1f(p.uPointSize, parseFloat(OMEGA.Omega3D.PointSize) );
-
-
 
         /*vertices*/
         gl.enableVertexAttribArray(p.aVertexPos);
@@ -175,7 +179,7 @@ function WebGLRenderer( debugRender ){
         gl.vertexAttribPointer( p.aVertexPos, current.GetMesh().GetVertexBuffer().itemSize, gl.FLOAT, false, 0, 0 );
 
         /*uvs*/
-        if(p.aTextureCoord!=-1){
+        if(p.aTextureCoord!=-1&&  current.GetMesh().GetUVBuffer() != undefined){
             gl.enableVertexAttribArray(p.aTextureCoord);
             gl.bindBuffer( gl.ARRAY_BUFFER, current.GetMesh().GetUVBuffer());
             gl.vertexAttribPointer( p.aTextureCoord,current.GetMesh().GetUVBuffer().itemSize, gl.FLOAT, false, 0, 0 );
@@ -204,6 +208,7 @@ function WebGLRenderer( debugRender ){
 
         //reset position.
         current.PlaceBack();
+        current.LateUpdate(gl,camera);
     };
     var renderLight = function( scene, mat ){
         var gl = scene.getGL();

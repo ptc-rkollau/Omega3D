@@ -1,6 +1,8 @@
 function SphereGeometry( radius, segW, segH){
     Geometry.apply( this);
+    if(radius) this.scale = radius;
     var radius = radius || this.scale;
+
     var segH = segW || 15;
     var segW = segH || 15;
     var angle = 0;
@@ -35,7 +37,16 @@ function SphereGeometry( radius, segW, segH){
             }
         }
     }
-    console.log("GEOMETRY : sphere created");
+
+    //FACES
+    for(var i=0;i< this.indexes.length;i+=9){
+        var v1 = { x: this.vertices[this.indexes[i]], y: this.vertices[this.indexes[i+1]], z: this.vertices[this.indexes[i+2]] };
+        var v2 = { x: this.vertices[this.indexes[i + 3]], y: this.vertices[this.indexes[i+4]], z: this.vertices[this.indexes[i+5]] };
+        var v3 = { x: this.vertices[this.indexes[i + 6]], y: this.vertices[this.indexes[i+7]], z: this.vertices[this.indexes[i+8]] };
+        var tan1 = v3.x
+        this.faces.push( { a:v1, b:v2, c:v3 } );
+
+    }
 };
 SphereGeometry.prototype = new Geometry();
 OMEGA.Omega3D.Geometry.SphereGeometry = SphereGeometry;

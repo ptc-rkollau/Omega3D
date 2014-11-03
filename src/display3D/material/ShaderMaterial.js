@@ -12,7 +12,7 @@ function ShaderMaterial( data ){
     uniforms.uProjectionMatrix = { type: "mat4", glsl: "uniform mat4 uProjectionMatrix;", value: null };
     uniforms.uViewMatrix       = { type: "mat4", glsl: "uniform mat4 uViewMatrix;"      , value: null };
     uniforms.uInvViewMatrix    = { type: "mat4", glsl: "uniform mat4 uInvViewMatrix;"   , value: null };
-    uniforms.uNormalMatrix     = { type: "mat4", glsl: "uniform mat4 uNormalMatrix;"    , value: null };
+    uniforms.uNormalMatrix     = { type: "mat3", glsl: "uniform mat3 uNormalMatrix;"    , value: null };
     this.uniforms = uniforms;
 
 
@@ -55,7 +55,8 @@ function ShaderMaterial( data ){
     };
 
     var createShader = function(){
-        var vertex_shader_src = attachData(attribs );
+        var vertex_shader_src = "";
+        vertex_shader_src += attachData(attribs );
         vertex_shader_src += attachData(uniforms );
         vertex_shader_src += data.vertex_src;
 

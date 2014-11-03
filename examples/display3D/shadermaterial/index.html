@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Omega3d - Shadermaterial demo</title>
     <link rel="icon" href="../../favicon.ico" type="image/x-icon">
-    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+    <script language="JavaScript" src="../src/Omega3d.min.v0014.js"></script>
 
 </head>
 <script type="x-shader/x-vertex" id="vertexshader">
@@ -115,6 +115,7 @@
             fragment_src: document.getElementById( 'cfragmentshader' ).textContent
         });
         skybox = new Omega3D.Object3D(new Omega3D.Mesh(new Omega3D.Geometry.CubeGeometry( 10.0 )), mat);
+        skybox.SetScale( 20, 20, 20 );
 
         scene01.addChild(portal);
         scene01.addChild(skybox);
@@ -144,7 +145,7 @@
     function render(){
         requestAnimationFrame(render);
         o.Rotate(0.005, 0.006, 0.01 );
-
+        //cam01.Rotate(0, 0.01, 0);
         renderer.render();
     }
 

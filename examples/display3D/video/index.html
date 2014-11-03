@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Omega3d - Video Texture demo</title>
     <link rel="icon" href="../../favicon.ico" type="image/x-icon">
-    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+    <script language="JavaScript" src="../src/Omega3d.min.v0014.js"></script>
 </head>
 <script type="text/javascript">
     var omega,scene, video,current, object, object2,object3,object4,object5, intervalID, renderer, camera, chain;
@@ -58,7 +58,7 @@
         var mesh1    = new Omega3D.Mesh( new Omega3D.Geometry.CubeGeometry(0.25) );
 
 
-        objects["Cube"]      =new Omega3D.Object3D( mesh1,material);
+        objects["Cube"] = new Omega3D.Object3D( mesh1,material);
 
         current = objects["Cube"];
         current.SetPosition(0,0,-1.0);

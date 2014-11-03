@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Level Of Detail demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0014.js"></script>
+</head>
+<script type="x-shader/x-vertex" id="vertexshader">
+        varying vec2 vTexCoord;
+        void main(void){
+            vec4 pos  = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
+            gl_Position = pos;
+            vTexCoord = aTextureCoord;
+        }
+</script>
+<script type="x-shader/x-vertex" id="fragmentshader">
+        uniform sampler2D tex;
+         varying vec2 vTexCoord;
+        void main(void){
+            vec4 color = vec4(0.8, 0.4, 0, 1.0);
+            gl_FragColor = color;
+        }
+</script>
+<script type="text/javascript">
+    var renderer, scene, cam, object, chain, mat;
+    function init(){
+        cam    = new Omega3D.cameras.FreeCamera;
+        cam.SetSpeed(0.25);
+
+        //add key listener for the free camera.
+        var keyListener = new OMEGA.listeners.KeyListener;
+        cam.SetListener(keyListener);
+        Omega3D.AddKeyListener(keyListener);
+
+        //scenes.
+        createMainScene();
+
+        //renderer.
+        renderer = new Omega3D.WebGLRenderer();
+        chain    = new Omega3D.RenderChain();
+
+        chain.AddRenderPass( new RenderPass( renderer, scene,cam  ) );
+        renderer.SetRenderChain(chain);
+
+        render();
+    }
+
+    function createMainScene(){
+        scene = new Omega3D.Scene;
+        mat   = new Omega3D.ShaderMaterial({
+            uniforms:{
+
+            },
+            vertex_src:document.getElementById( 'vertexshader' ).textContent,
+            fragment_src:document.getElementById( 'fragmentshader' ).textContent
+        });
+
+        object = new Omega3D.LODObject3D(new Omega3D.Mesh(new Omega3D.Geometry.SphereGeometry(5, 10, 10)), mat, 5); //mesh, material, LOD-steps
+        object.drawType = Omega3D.Object3D.WIREFRAME;
+        scene.addChild(object);
+    }
+
+
+    function render(){
+        requestAnimationFrame(render);
+        object.Rotate( 0.01, 0.01, 0);
+        renderer.render();
+    }
+
+</script>
+<body onload="init();">
+<canvas id="omega" width="800px" height="600px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+<div style="top:10px;left:600px;color:#fff;position:absolute;">LOD Demo.<br>Use "W" and "S" keys to move</div>
+</body>
+</html>

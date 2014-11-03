@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Omega3d - Texture offset demo</title>
     <link rel="icon" href="../../favicon.ico" type="image/x-icon">
-    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+    <script language="JavaScript" src="../src/Omega3d.min.v0014.js"></script>
 </head>
 <script type="x-shader/x-vertex" id="lavavertexshader">
         uniform vec2 uOffset;
@@ -14,7 +14,7 @@
         void main(void){
             vec3 lightPosition = vec3(0.75, 0,-5);
             vec4 pos = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
-            vec4 transNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+            vec3 transNormal = uNormalMatrix * aVertexNormal;
 
             gl_Position = pos;
             vTexCoord   = aTextureCoord;
@@ -23,9 +23,10 @@
         }
 </script>
 <script type="x-shader/x-vertex" id="lavafragmentshader">
+        uniform sampler2D tex;
         varying vec2 vTexCoord;
         varying vec2 vOffset;
-        uniform sampler2D tex;
+
         varying float vDot;
         void main(void){
             float strength = 0.1;

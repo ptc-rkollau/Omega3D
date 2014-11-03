@@ -16,6 +16,10 @@ function Texture( img, needsUpdate, ID ){
     this.Enable = function( shader ){ };
     this.Disable = function(){ };
 
+    this.IsPowerOf2 = function( value ){
+        return ( value & (value-1) == 0);
+    };
+
     this.Update = function() {
         this.gl_context.bindTexture(this.gl_context.TEXTURE_2D, this.tex);
         this.gl_context.pixelStorei(this.gl_context.UNPACK_FLIP_Y_WEBGL, true);
