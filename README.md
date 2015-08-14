@@ -2,11 +2,12 @@
 
 ### What ?  ###
 * Javascript WebGL 3D rendering library.
-* Current stable version: **0.0.1.4 Alpha**
+* Current stable version: **0.0.1.5 Alpha**
 * [Learn more here!](http://lab.rackdoll.nl/js/omega/)
 
 ### Features ###
-* Linkedlist batch rendering.
+* Point and Directional lighting.
+* Shadow mapping.
 * Customizable RenderPasses.
 * RenderChains, for rendering control.
 * FrameBuffer and StencilBuffer support.
@@ -16,6 +17,14 @@
 * Build-in geometries ( Cube, Sphere, Torus, Cilinder, Square ), support for custom geometries.
 * Build-in Shaders and support for custom shaders.
 * Build-in pseudo static pipeline ( beginners ) and pseudo dynamic pipeline ( novice )
+
+### Features in dev progress ( not in release build... yet )###
+* Multi browser support.
+* New loader for images / shaders.
+* OBJ parsing
+* Parenting 
+* ColorPicking
+
 
 ### How ? ###
 * Go to the **examples -> display3D** folder for examples.
