@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Omega3d - SkyBox Reflection Texture demo</title>
     <link rel="icon" href="../../favicon.ico" type="image/x-icon">
-    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+    <script language="JavaScript" src="../src/Omega3d.min.v0014.js"></script>
 
 </head>
 <script type="text/javascript">
@@ -16,12 +16,12 @@
 
         var u = new OMEGA.Utils;
         u.LoadImages([
-            "skybox_indoor/posx.jpg",
-            "skybox_indoor/negx.jpg",
-            "skybox_indoor/posy.jpg",
-            "skybox_indoor/negy.jpg",
-            "skybox_indoor/posz.jpg",
-            "skybox_indoor/negz.jpg"
+            "../../images/skyboxes/skybox_indoor/posx.jpg",
+            "../../images/skyboxes/skybox_indoor/negx.jpg",
+            "../../images/skyboxes/skybox_indoor/negy.jpg",
+            "../../images/skyboxes/skybox_indoor/posy.jpg",
+            "../../images/skyboxes/skybox_indoor/posz.jpg",
+            "../../images/skyboxes/skybox_indoor/negz.jpg"
         ], onLoadComplete);
     }
 
@@ -47,7 +47,7 @@
         scene.addChild(object);
 
         var objParser = new Omega3D.parsers.OBJParser();
-        var mesh      = objParser.ParseToMesh("gnome2.obj", 20);
+        var mesh      = objParser.ParseToMesh("head.obj", 20);
         gnome          = new Omega3D.Object3D(mesh, reflection_material);
         gnome.SetPosition( 0, 0, -10);
         scene.addChild(gnome);

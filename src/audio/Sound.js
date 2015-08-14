@@ -6,6 +6,8 @@ OMEGA.Audio.Sound = function( id, buffer ){
     this.gainNode = OMEGA.Audio.ctx.createGain();
     this.gainNode.gain.value = 1.0;
     this.panner = OMEGA.Audio.ctx.createPanner();
+    this.currentNode = null;
+    this.isCreated = false;
 
     this.getID = function(){ return this.sound_id; };
     this.getVolume = function(){ return this.gainNode.gain.value; };
@@ -14,8 +16,23 @@ OMEGA.Audio.Sound = function( id, buffer ){
     this.setVolume = function(value){ this.gainNode.gain.value = value; };
     this.setPanner = function(value){this.panner = value; };
 
-    this.play = function(time){
+    this.AttachNode = function( value ){
+        this.currentNode.connect(value);
+        this.currentNode =  value;
+        //this.currentNode.connect(OMEGA.Audio.ctx.destination);
+    };
+    this.Create =  function(){
         var offlineContext = new OfflineAudioContext(1, this.sound_buffer.length, this.sound_buffer.sampleRate);
+
+        this.sound_src = OMEGA.Audio.ctx.createBufferSource();
+        this.sound_src.buffer = this.sound_buffer;
+
+        this.currentNode = this.sound_src;
+        this.isCreated = true;
+    }
+
+    this.play = function(time){
+       /* var offlineContext = new OfflineAudioContext(1, this.sound_buffer.length, this.sound_buffer.sampleRate);
 
         this.sound_src = OMEGA.Audio.ctx.createBufferSource();
         this.sound_src.buffer = this.sound_buffer;
@@ -31,8 +48,14 @@ OMEGA.Audio.Sound = function( id, buffer ){
       //  filter.connect(OMEGA.Audio.ctx.destination);
       //
        this.sound_src.connect(this.panner);
-        this.panner.connect(OMEGA.Audio.ctx.destination);
+        this.panner.connect(OMEGA.Audio.ctx.destination);*/
+       //// var filter = OMEGA.Audio.ctx.createBiquadFilter();
+        //filter.type = "lowpass";
 
+       // this.currentNode.connect( filter );
+      //  this.currentNode = filter;
+
+        this.currentNode.connect(OMEGA.Audio.ctx.destination);
         this.sound_src.start(time);
 
         //OMEGA.Audio.ctx.startRendering();

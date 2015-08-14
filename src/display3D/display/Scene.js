@@ -10,6 +10,10 @@ OMEGA.Omega3D.Scene = function() {
     this.lights = new Array();
     this.counter  = new OMEGA.Utils.Counter();
     this.color = {r: 0.0, g:0.0, b:0.0, a:1.0};
+    this.hasFog = true;
+    this.fogStart = 1.0;
+    this.fogEnd   = 3.0;
+    this.lightsON = true;
 
 
 
@@ -67,67 +71,78 @@ OMEGA.Omega3D.Scene = function() {
 OMEGA.Omega3D.Scene.prototype.getGL = function(){
     return this.gl;
 };
-OMEGA.Omega3D.Scene.prototype.addChild = function( c ){
+OMEGA.Omega3D.Scene.prototype.addChild = function( c  ){
+
     this.children.push( c );
+    c.parentScene = this;
 
-    if(!this.checkForMaterial(c.GetMaterial().GetID())) this.materials.push( { id:c.GetMaterial().GetID(), material:c.GetMaterial() } );
-    var materialID = c.GetMaterial().GetID();
-    if( materialID == "")materialID = "default";
-    if( this.objects[ materialID] == null ){
-        this.objects[ materialID] = new Array();
-    }
-    this.objects[materialID].push( c );
-
-
-    if( this.list[ materialID] == null ){
-        this.list[ materialID] = {head:null, tail:null};;
-    }
-
-
-    if( this.list[ materialID].head == null ){
-        this.list[ materialID].head = c;
-        this.list[ materialID].tail = c;
-
-    }else{
-        c.prev = this.list[ materialID].tail;
-        this.list[ materialID].tail.next = c;
-        this.list[ materialID].tail = c;
-    }
+    //if(!this.checkForMaterial(c.GetMaterial().GetID())) this.materials.push( { id:c.GetMaterial().GetID(), material:c.GetMaterial() } );
+    //var materialID = c.GetMaterial().GetID();
+    //if( materialID == "")materialID = "default";
+    //if( this.objects[ materialID] == null ){
+    //    this.objects[ materialID] = new Array();
+    //}
+    //this.objects[materialID].push( c );
+    //
+    //
+    //
+    ////LIST SEGMENT.
+    //if( this.list[ materialID] == null ){
+    //    this.list[ materialID] = {head:c, tail:null};
+    //    c.prev = null;c.next = null;
+    //}else {
+    //    if (this.list[materialID].tail == null) {
+    //        this.list[materialID].tail = c;
+    //        c.prev = this.list[materialID].head;
+    //        this.list[materialID].head.next = c;
+    //    } else {
+    //        c.prev = this.list[materialID].tail;
+    //        this.list[materialID].tail.next = c;
+    //        this.list[materialID].tail = c;
+    //    }
+    //
+    //}
 };
 OMEGA.Omega3D.Scene.prototype.removeChild = function( c ){
     for(var i=0;i<this.children.length;i++){
         if( this.children[i] == c )
             this.children.splice(i,1);
     }
-
-
-    var a,b;
-    if( c.prev ) {
-        a = c.prev;
-        c.prev = null;
-    }
-    if( c.next ) {
-        b = c.next;
-        c.next = null;
-    }
-    if(a && b){
-        a.next = b;
-        b.prev = a;
-    }
-    var materialID = c.GetMaterial().GetID();
-    if( this.list[ materialID].head == c )this.list[ materialID].head = null;
-    if( this.list[ materialID].tail == c )this.list[ materialID].tail = null;
-
-    if(!this.objects[ materialID ]){
-        c = null;
-        return;
-    }
-    for( var i = 0; i < this.objects[ materialID ].length; i++){
-        if( this.objects[materialID][i] == c ){
-            this.objects[materialID].splice( i, 1 );
-        }
-    }
-    if(this.objects[materialID].length == 0) this.objects[materialID] = null;
+    //var materialID = c.GetMaterial().GetID();
+    //if( this.list[ materialID].head == c ){
+    //    if(c.next!=null){
+    //        this.list[ materialID].head = c.next;
+    //        this.list[ materialID].head.prev = null;
+    //    }else{
+    //        this.list[ materialID].head = null;
+    //        this.list[ materialID ] = null;
+    //    }
+    //}else if(  this.list[ materialID].head != c && this.list[ materialID].tail == c){
+    //    if(c.prev != null){
+    //        this.list[ materialID].tail = c.prev;
+    //        this.list[ materialID].tail.next = null;
+    //    }
+    //}else if( this.list[ materialID].head != c && this.list[ materialID].tail != c ){
+    //    if(c.prev != null && c.next != null){
+    //        c.prev.next = c.next;
+    //        c.next.prev = c.prev.next;
+    //    }
+    //}
+    //
+    //if(!this.objects[ materialID ]){
+    //    c = null;
+    //    return;
+    //}
+    //for( var i = 0; i < this.objects[ materialID ].length; i++){
+    //    if( this.objects[materialID][i] == c ){
+    //        this.objects[materialID].splice( i, 1 );
+    //    }
+    //}
+    //if(this.objects[materialID].length == 0){
+    //
+    //    this.objects[materialID] = null;
+    //}
+    c.parentScene = null;
     c = null;
 };
 

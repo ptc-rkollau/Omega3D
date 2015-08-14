@@ -1,6 +1,6 @@
 <script language="JavaScript" src="../../../src/display3D/math/common.js"></script>
     <script language="JavaScript" src="../../../src/display3D/math/mat4.js"></script>
-    <script language="JavaScript" src="../../../src/display3D/math/Vector3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/Vector3.js"></script>
     <script language="JavaScript" src="../../../src/utils/Utils.js"></script>
     <script language="JavaScript" src="../../../src/display3D/Omega3D.js"></script>
     <script language="JavaScript" src="../../../src/display3D/display/Object3D.js"></script>

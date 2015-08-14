@@ -34,7 +34,8 @@ function SquareGeometry(width, height,segW, segH){
             }
         }
     }
-
+    /*TANGENTS, BITANGENTS */
+  //  Geometry.ComputeTangentBasis( this.vertices, this.uvs, this.normals, this.tangents, this.bitangents);
 
 //    this.vertices = [
 //            -1.0 * halfScaleW,  1.0* halfScaleH,  0.0,
@@ -55,7 +56,7 @@ function SquareGeometry(width, height,segW, segH){
 //        1, 1
 //    ];
 //    this.indexes = [ 0, 1, 2, 0, 2, 3];
-    console.log("GEOMETRY : square created");
+    OMEGA.Omega3D.Log("GEOMETRY : square created");
 };
 SquareGeometry.prototype = new Geometry();
 OMEGA.Omega3D.Geometry.SquareGeometry = SquareGeometry;

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>OMEGA Demo - 01</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../../../src/display3D/math/mat3.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/common.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/mat4.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/Vector2.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/Vector3.js"></script>
+    <script language="JavaScript" src="../../../src/utils/Utils.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/Omega3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/utils/ShaderUtil.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/utils/VBOUtil.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Object3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/LODObject3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cube.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cylinder.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Light.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Scene.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Sphere.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Torus.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/Camera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/DepthCamera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/FreeCamera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/Material.js"></script>
+    <script language="JavaScript" src="../../../src/redundant/MultiMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/ShaderMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Components.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shaders.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/Texture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/BasicTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/CubemapTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/ShadowMapTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/Mesh.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/Geometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CubeGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CylinderGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SphereGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SquareGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TorusGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TriangleGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/IcosaGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/OBJParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/ColladaParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/WebGLRenderer.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/Pass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/ProxyPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/PostProcessingPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/ShadowMapPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderToTexturePass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderChain.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/FrameBufferTexture.js"></script>
+    <script language="JavaScript" src="../../../src/listeners/KeyListener.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/BasicMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/ShadowMapMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/CubeMapMaterial.js"></script>
+    <script src="../../../src/audio/Audio.js"></script>
+    <script src="../../../src/audio/Loader.js"></script>
+    <script src="../../../src/audio/Sound.js"></script>
+    <script src="../../../src/audio/Analyser.js"></script>
+    <script src="../../third_party/TweenLite.min.js"></script>
+</head>
+<script type="text/javascript">
+    var images, renderer, timeline, cnvs;
+    var analyser, oo, bloom_shader, shadowMat,dummyMat;
+    var postprocessing_scene, pp_texture_01,pp_texture_02,quad;
+    var scene01, cam01, object01, light01, renderChain01;
+    var scene02, cam02, object02, light02, renderChain02;
+    var scene03, cam03, object03, light03, renderChain03;
+    var scene04, cam04, object04, light04, renderChain04;
+    var state = "grid";
+
+
+
+
+    function init( ){
+
+        //OMEGA.Omega3D.INSTANCE = new OMEGA.Omega3D();
+
+        cnvs = document.getElementById("omega");
+        window.addEventListener("resize", onResize, false);
+        oo = new Omega3D.parsers.OBJParser(true);
+       // onResize();
+
+        renderer  = new Omega3D.WebGLRenderer();
+        cam01     = new Omega3D.cameras.Camera();
+        cam02     = new Omega3D.cameras.Camera();
+        cam01.LookAt(0, 0, 0, [0, 0, 5]);
+        cam02.LookAt(0, 0, 0, [0, -20, 15]);
+
+
+        buildFullScreenQuadScene();
+        createScene();
+        buildTimeline();
+
+        bloom_shader = new Omega3D.Shaders.PP_Bloom("5");
+        renderChain01 = new Omega3D.RenderChain();
+      //  renderChain01.AddRenderPass( new ShadowMapPass(renderer,scene02,cam02,shadowMat.shadowMapTexture));
+        renderChain01.AddRenderPass( new RenderPass(renderer,scene02,cam02));
+        //renderChain01.AddRenderPass( new ProxyPass( this, this.swapMaterialsShadow ));
+        //renderChain01.AddRenderPass( new RenderToTexturePass( renderer, scene01, cam01, pp_texture_01 ));
+        //renderChain01.AddRenderPass( new PostProcessingPass( renderer, quad, bloom_shader , pp_texture_02 ));
+       // renderChain01.AddRenderPass( new PostProcessingPass( renderer, quad, new Omega3D.Shaders.PostProcessing(true,postprocessing_scene), pp_texture_01 ));
+       // renderChain01.AddRenderPass( new RenderPass( renderer, scene01, cam01 ));
+       // renderChain01.AddRenderPass( new ProxyPass( this, this.swapMaterialsBack ));
+        renderer.SetRenderChain( renderChain01 );
+
+        var audioPath4 = '../../sounds/Colorpulse-LittleBraveYoungBoy.mp3';
+        OMEGA.Audio.LoadSounds([{id:"song", path:audioPath4}], onSoundLoaded );
+    }
+
+    //Swap materials.
+    function swapMaterialsShadow(){
+        scene02.removeChild( plane ); //have to remove first, before we can set new object material.
+        plane.SetMaterial(shadowMat); //swap material.
+        scene01.addChild( plane );
+    }
+    function swapMaterialsBack(){
+        scene01.removeChild( plane ); //have to remove first, before we can set new object material.
+        plane.SetMaterial(dummyMat); //swap material
+        scene02.addChild( plane );
+    }
+
+
+
+
+    function onSoundLoaded(){
+        ana = new OMEGA.Audio.Analyser(OMEGA.Audio.ctx);
+        OMEGA.Audio.AttachNode("song", ana.analyser );
+        OMEGA.Audio.PlaySound("song", 0);
+        document.addEventListener('KICK', onKick );
+
+        render();
+    }
+
+    var objects = new Array();
+    var shader01, shader02, mesh, l;
+    function createScene(){
+
+
+        scene01 = new Omega3D.Scene();
+        scene02 = new Omega3D.Scene();
+      //  scene01.setColor(1, 1, 1);
+
+        l  = new Omega3D.Light( Omega3D.DIRECTIONAL_LIGHT );
+        l.SetDirection( 0, 1,1);
+        l.SetDiffuse(1.0, 1.0, 1.0);
+        l.GenerateGLSL();
+        scene01.addLight(l);
+
+
+
+        shader01 = new Omega3D.Shaders.Basic(false, scene01, [0.8, 0.4, 0]  );
+        shader02 = new Omega3D.Shaders.Basic(false, scene01, [0, 0, 0] );
+        var tex = new Omega3D.BasicTexture();
+        var mat = new Omega3D.Material(shader01, [tex]);
+
+        var amount = 3;
+        var total = amount*0.3;
+        var xpos = -(total/2);
+        var ypos = -(total);
+        var geom = new Omega3D.Geometry.SquareGeometry(10, 10);
+        var mplane = new Omega3D.Mesh(geom);
+
+        mesh = new Omega3D.Mesh( oo.ParseToObject3D("../../obj/cube.obj",0.15, mat).GetMesh().GetGeometry() );
+        for( var y = 0; y < amount; y++ ){
+            xpos = -(total/2) ;
+            for( var x = 0; x < amount; x++){
+                mat = new Omega3D.Material(shader01, [tex]);
+                var  o = new Omega3D.Object3D(mesh, mat);
+                o.SetRotation(Math.PI, 0, 0);
+                o.SetPosition(xpos, ypos, 0);
+                objects.push(o);
+                scene01.addChild(o);
+
+                xpos += 0.3;
+
+            }
+            ypos += 0.3;
+        }
+
+       shadowMat = new Omega3D.ShadowMapMaterial( [tex], scene01,cam02 );
+        dummyMat = new Omega3D.Material(new Omega3D.Shaders.Basic(false, scene02, [1, 1, 1]  ), [tex]);
+       // plane = new Omega3D.Object3D(mplane,  new Omega3D.Material(new Omega3D.Shaders.Basic(false, scene01, [1, 1, 1]  ), [tex]));
+        plane = new Omega3D.Object3D(mplane, dummyMat);
+        plane.SetRotation(Math.PI/2, 0, 0);
+        plane.SetPosition(0, 0, 0);
+        scene02.addChild(plane);
+
+
+        mesh = new Omega3D.Mesh( oo.ParseToObject3D("../../obj/skull_good.obj",0.75, mat).GetMesh().GetGeometry() );
+    }
+
+
+    var plane;
+    function buildFullScreenQuadScene(){
+        postprocessing_scene = new Omega3D.Scene();
+        var geometry       = new Omega3D.Geometry.SquareGeometry(1, 1);
+        var  mesh           = new Omega3D.Mesh( geometry );
+        var shader         = new Omega3D.Shaders.PostProcessing( true, postprocessing_scene );
+        pp_texture_01  = new Omega3D.FrameBufferTexture();
+        pp_texture_02  = new Omega3D.FrameBufferTexture();
+        var material       = new Omega3D.Material( shader, [pp_texture_01]);
+        quad            = new Omega3D.Object3D(mesh, material);
+        quad.parentScene = postprocessing_scene;
+        postprocessing_scene.addChild( quad );
+    }
+
+
+
+    function buildTimeline(){
+        timeline = new OMEGA.Utils.Timeline();
+
+//        timeline.Add(100, function(){
+//
+//            state = "grid";
+//            console.log("grid");
+//        });
+        timeline.Add(10, function(){
+            angle01 = Math.random() *( Math.PI/2), startX = 0, startY = 0, startZ = 0;
+            state = "trail";
+            console.log("trail");
+
+
+        });
+        timeline.Add(5000, function(){
+            angle01 = Math.random() *( Math.PI/2), startX = 0, startY = 0, startZ = 0;
+            state = "trail2";
+            console.log("trail2");
+           // scene01.addLight(l);
+        });
+//        timeline.Add(30000, function(){
+//
+//            console.log("reset");
+//            timeline.Reset();
+//        });
+        timeline.On();
+    }
+
+
+
+    var angle01 = 0, startX = 0, startY = 0, startZ = 0, target = null, kickcount = 0;
+    function onKick(){
+        scale = 1.5;
+       // target = null;
+        var offset = 0;
+        kickcount++;
+        switch(state){
+            case "grid":
+               // scale = 1 +( Math.random() * 0.5);
+                for(var i = 0; i < objects.length; i++){
+                    var rand = Math.random();
+                    if(rand < 0.4){
+                        objects[i].SetScale(1,1,1);
+                       // objects[i].SetScale(scale,scale,scale);
+                        objects[i].GetMaterial().SetShader(shader02);
+                    }
+                    else{
+
+                        // objects[i].SetScale(1,1,1);
+                        objects[i].SetScale(scale,scale,scale);
+                        objects[i].GetMaterial().SetShader(shader01);
+                    }
+                }
+
+                break;
+
+            case "trail":
+                angle01 += Math.random() * 2 ;
+                startZ += 1.5 + Math.sin( angle01 ) * 0.25;
+                startX += Math.cos( angle01 ) * 0.25;
+
+                var dx =   cam01.GetPosition()[0] - startX;
+                var dz =   cam01.GetPosition()[2] - startZ;
+                var camAngle = Math.atan2(dx, dz ) * 180 / Math.PI;
+                    console.log(camAngle);
+
+                var mat = new Omega3D.Material(shader01, [new Omega3D.BasicTexture()]);
+                target = new Omega3D.Object3D(mesh, mat);
+                target.SetRotation(Math.PI, camAngle  , 0);
+                target.SetPosition(startX, 0, startZ);
+                scene01.addChild(target);
+                offset = -1.5;
+                break;
+
+            case "trail2":
+                for(var i = 0; i < objects.length; i++){
+                    var rand = Math.random();
+                    if(rand < 0.4){
+                        //objects[i].SetScale(scale,scale,scale);
+                        objects[i].GetMaterial().SetShader(shader02);
+                    }
+                    else{
+                        // objects[i].SetScale(1,1,1);
+                        objects[i].GetMaterial().SetShader(shader01);
+                    }
+                }
+                if(kickcount%10!=0) break;
+
+
+
+                angle01 += Math.random() * 2 ;
+                startZ = Math.sin( angle01 ) * 3.25;
+                startX = Math.cos( angle01 ) * 3.25;
+
+                var dx =   cam01.GetPosition()[0] - startX;
+                var dz =   cam01.GetPosition()[2] - startZ;
+                var camAngle = Math.atan2(dz, dx ) * 180 / Math.PI;
+
+                var mat = new Omega3D.Material(shader01, [new Omega3D.BasicTexture()]);
+                target = new Omega3D.Object3D(mesh, mat);
+                target.SetRotation(Math.PI, camAngle +( Math.PI *2), 0);
+                target.SetPosition(startX, 0, startZ);
+                offset= -3.5;
+
+                scene01.addChild(target);
+                break;
+        }
+
+       // if(kickcount%Math.round(Math.random()*4)!=0) return;
+        //if( rand > 0.6 ) return;
+        var radius = 3 + Math.random() * 2;
+        var a01 = Math.PI - 0.25 + Math.random() * (Math.PI/2)/2;
+        var a02 = (Math.PI/1.39) -  Math.random() *  (Math.PI/2 ) ;
+
+        var yy;
+        if(target != null){
+            yy = offset + target.GetPosition()[1] + Math.sin(a01) * 5;
+            if(yy > -0.1 ) yy = -0.1;
+            TweenLite.to(cam01, 2, {x:  target.GetPosition()[0] + Math.cos(a01) * 5 * Math.cos(a02),
+                y:  yy,
+                z:  target.GetPosition()[2] + Math.cos(a01) * 5 *  Math.sin(a02),
+                lookX: target.GetPosition()[0],
+                lookY: target.GetPosition()[1],
+                lookZ: target.GetPosition()[2] });
+        }else{
+            yy = Math.sin(a01) * radius;
+           // if(yy > -0.1 ) yy = -0.1;
+            TweenLite.to(cam01, 0.5, {x: Math.cos(a01) * radius * Math.cos(a02),
+                y: yy,
+                z: Math.cos(a01) * radius *  Math.sin(a02),
+                lookX: 0,
+                lookY: 0,
+                lookZ: 0 });
+        }
+
+    };
+
+
+    function render(){
+        requestAnimationFrame(render);
+
+        //update analyser.
+        ana.Render();
+
+        if(target!=null && scale > 1.0){
+            scale *= 0.99;
+            target.SetScale(scale,scale,scale);
+
+        }
+
+        //update timeline.
+        timeline.Tick();
+
+
+        //update renderer.
+        renderer.render();
+    }
+
+
+
+    function onResize(){
+        cnvs.width  = window.innerWidth - 5;
+        cnvs.height = window.innerHeight - 5;
+        Omega3D.Recalibrate();
+    }
+
+</script>
+<body onload="init();" style="padding:0;margin:0;">
+<canvas id="omega" width="900px" height="900px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

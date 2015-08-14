@@ -2,8 +2,8 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>OMEGA PACKAGE</title>
-    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <title>OMEGA 3D WebGL Javascript Framework</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
@@ -15,7 +15,9 @@
     js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=130206443793090&version=v2.0";
     fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
-
+<a href="https://bitbucket.org/rkollau/omegajs/"><img style="position: absolute; top: 0; right: 0; border: 0;width:100px;" src="bitbucket-ribbon-dark-blue.png" alt="Fork me on Bitbucket" data-canonical-src="bitbucket-ribbon-dark-blue.png"></a>
+<!-- <a href="https://github.com/rackdoll/Omega3D"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+-->
 <div id="omega">
     <img id="omg" src="omega.png"/><br/>
     ... for some hot WebGL and WebAudio <img id="love" src="heart.png"/> ....
@@ -28,9 +30,18 @@
     <b>Features:</b><br/>Omega3D has build-in scenes, objects, shaders, geometry, renderers, render passes and core 3d logic to help cut down your development time and ease your flow into the world of WebGL 3D graphics.
     Omega3D also makes it possible for you to use your own custom  shaders, lighting,  models and render passes.<br /><br />Omega3D is in early alpha, while we make new and awesome stuff to fit inside this framework, we will keep this site updated with the latest developments.
 
+    <p><b>Latest [17-05-2015]:</b>
+    <ul id="navlist">
+    <li><a href="http://lab.rackdoll.nl/js/omega/examples/lights/" target="_blank">[Light] Improved lighting system</a></li>
+    <li><a href="http://lab.rackdoll.nl/js/omega/examples/shadowmapping/" target="_blank">[Shadows] Basic Shadow Mapping</a></li>
+    <li><a href="http://lab.rackdoll.nl/js/omega/examples/spherical_environment_mapping/" target="_blank">[Materials] Spherical Environment Mapping (SEM) </a></li>
+    <li><a href="http://lab.rackdoll.nl/js/omega/examples/post_processing/" target="_blank">[PostProcessing] Basic Post Processing pipeline</a></li>
+
+    </ul></p>
+
     <p>
         <b>Demo list:</b>
-        <ul>
+        <ul id="navlist">
             <li><a href="http://lab.rackdoll.nl/js/omega/examples/shapes/" target="_blank">[Geometry] Shapes ( sphere, cube, pipe, torus )</a></li>
             <li><a href="http://lab.rackdoll.nl/js/omega/examples/drawtype/" target="_blank">[Drawing] DrawTypes ( default, wireframe, points )</a></li>
             <li><a href="http://lab.rackdoll.nl/js/omega/examples/shading/"  target="_blank">[Shading] None, Diffuse and Phong shading demo</a></li>
@@ -42,11 +53,12 @@
             <li><a href="http://lab.rackdoll.nl/js/omega/examples/skybox_reflection/"  target="_blank">[Texture] Cubemap reflection ( look around: W,S,A,D & Arrow keys )</a></li>
             <li><a href="http://lab.rackdoll.nl/js/omega/examples/shader_material/"  target="_blank">[Material] ShaderMaterial</a></li>
             <li><a href="http://lab.rackdoll.nl/js/omega/examples/stencilBuffer/"  target="_blank">[StencilBuffer] Planar reflection with the stencilbuffer</a></li>
-
+            <li><a href="http://lab.rackdoll.nl/js/omega/examples/lod/"  target="_blank">[Object] Level Of Detail ( LOD ) Object demo</a></li>
+            <li><a href="http://lab.rackdoll.nl/js/omega/examples/pointlight/"  target="_blank">[Light] Three Pointlights demo</a></li>
+            <li><a href="http://lab.rackdoll.nl/js/omega/examples/pointsprite/"  target="_blank">[Object] Pointsprite demo ( look around: W,S,A,D & Arrow keys )</a></li>
         </ul>
     </p>
-    <div id="omega"><b>Last Updated:</b> 20-10-2014</div>
-    <div id="omega"><b>Download:</b> <a href="http://lab.rackdoll.nl/js/omega/examples/src/Omega3d.min.v0013.js" target="_blank">Omega3D v0.0.1.3 Alpha</a></div>
+    <div id="omega"><b>Download:</b> <a href="http://lab.rackdoll.nl/js/omega/examples/src/Omega3d.min.v0015.js" target="_blank">Omega3D v0.0.1.5 Alpha</a></div>
 </div>
 
 
@@ -60,7 +72,6 @@
             <li><a href="http://lab.rackdoll.nl/js/omega/examples/audio_loop/" target="_blank">[Audio] Procedurally generated loop</a></li>
         </ul>
     </p>
-    <div id="omega"><b>Last Updated:</b> 10-08-2014</div>
     <div id="omega"><b>Download:</b> <a href="http://lab.rackdoll.nl/js/omega/examples/src/OmegaAudio.min.js" target="_blank">OmegaAudio v0.0.1 Alpha</a></div>
 </div>
 <div style="position:relative;height:50px;"></div>

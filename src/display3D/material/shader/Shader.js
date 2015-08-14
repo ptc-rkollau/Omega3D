@@ -36,21 +36,37 @@ function Shader(vsrc, fsrc, vars ){
         this.gl_context.linkProgram(this.program);
 
         if(!this.gl_context.getProgramParameter( this.program, this.gl_context.LINK_STATUS) ){
-            console.log("Could not initialize shaders / program");
+            OMEGA.Omega3D.Log("   -- Could not initialize shaders / program");
             return null;
         }
 
         //TODO:
         //FIX VARS IF NOT FROM SHADERMATERIAL.
+        var saved = null;
         if(vars){
             for( var key in vars ){
                 for(var k in vars[key]){
-                    if(key == 0 ) this.program[k] = this.gl_context.getAttribLocation( this.program, k.toString());
-                    else  this.program[k] = this.gl_context.getUniformLocation( this.program, k.toString());
-
+                    if(key == 0 || key == 4){
+                        this.program[k] = this.gl_context.getAttribLocation( this.program, k.toString());
+                    }
+                    else{
+                        this.program[k] = this.gl_context.getUniformLocation( this.program, k.toString());
+                    }
                 }
             }
         }
+        this.gl_context.validateProgram(this.program);
+        if (!this.gl_context.getProgramParameter(this.program,this.gl_context.VALIDATE_STATUS)){
+            OMEGA.Omega3D.Log("   -- Program validation failed!");
+            return null;
+        }
+
+        this.gl_context.detachShader( this.program, this.vertex_shader );
+        this.gl_context.detachShader( this.program, this.fragment_shader );
+        this.gl_context.deleteShader(this.vertex_shader);
+        this.gl_context.deleteShader( this.fragment_shader);
+
+       // OMEGA.Omega3D.Log("   -- Program succesfully created!");
         return this.program;
     };
     this.createShaderElement = function( type, src ) {
@@ -60,22 +76,38 @@ function Shader(vsrc, fsrc, vars ){
         this.gl_context.compileShader( shader_element );
 
         if(!this.gl_context.getShaderParameter( shader_element, this.gl_context.COMPILE_STATUS )) {
-            console.log( (type == this.gl_context.VERTEX_SHADER ? "Vertex shader: " : "Fragment shader: ") + this.gl_context.getShaderInfoLog( shader_element ));
+            OMEGA.Omega3D.Log( (type == this.gl_context.VERTEX_SHADER ? "  -- Vertex component: " : "   -- Fragment component: ") + this.gl_context.getShaderInfoLog( shader_element ));
             return null;
         }else{
-            console.log((type == this.gl_context.VERTEX_SHADER ? "Vertex shader: " : "Fragment shader: ") + "succesfully compiled!");
+            //OMEGA.Omega3D.Log((type == this.gl_context.VERTEX_SHADER ? "   -- Vertex component: " : "   -- Fragment component: ") + "succesfully compiled!");
         }
 
         return shader_element;
     };
-    this.GetSamplerLocation = function(){
+    this.GetSamplerLocation = function( sampler_id ){
         for( var key in vars ){
             for(var k in vars[key]){
-                if(vars[key][k].type == "sampler2D" || vars[key][k].type == "samplerCube" ) return this.program[k];
+                if( vars[key][k].type == "sampler2D" || vars[key][k].type == "samplerCube" ){
+                    if( sampler_id != null){
+                        if(sampler_id == k) return this.program[k];
+                    }else{
+                        return this.program[k];
+                    }
+                }
             }
         }
         return -1;
     };
+
+
+
+    this.Clone = function(){
+        return new OMEGA.Omega3D.Shader( this.vertex_shader_src, this.fragment_shader_src, this.vars );
+    }
+
+
+
+
 
 
 

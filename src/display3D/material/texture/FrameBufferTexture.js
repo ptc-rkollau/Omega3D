@@ -6,8 +6,8 @@ function FrameBufferTexture(w, h, ID){
     //frame buffer
     frameBuffer =  this.gl_context.createFramebuffer();
     this.gl_context.bindFramebuffer(  this.gl_context.FRAMEBUFFER, frameBuffer);
-    frameBuffer.width = w || 512;
-    frameBuffer.height = h || 512;
+    frameBuffer.width = w || 1024;
+    frameBuffer.height = h || 1024;
 
     //texture
     this.tex =  this.gl_context.createTexture();
@@ -27,6 +27,10 @@ function FrameBufferTexture(w, h, ID){
     this.gl_context.framebufferTexture2D(this.gl_context.FRAMEBUFFER, this.gl_context.COLOR_ATTACHMENT0, this.gl_context.TEXTURE_2D, this.tex, 0);
     this.gl_context.framebufferRenderbuffer(this.gl_context.FRAMEBUFFER, this.gl_context.DEPTH_ATTACHMENT, this.gl_context.RENDERBUFFER, depthBuffer);
 
+    if(!this.gl_context.checkFramebufferStatus(this.gl_context.FRAMEBUFFER) === this.gl_context.FRAMEBUFFER_COMPLETE) {
+        console.error("Framebuffer incomplete!");
+    }
+
     this.gl_context.bindTexture(this.gl_context.TEXTURE_2D, null);
     this.gl_context.bindRenderbuffer(this.gl_context.RENDERBUFFER, null);
     this.gl_context.bindFramebuffer(this.gl_context.FRAMEBUFFER, null);
@@ -37,7 +41,9 @@ function FrameBufferTexture(w, h, ID){
         this.gl_context.activeTexture( this.gl_context.TEXTURE0+this.ID);
         this.gl_context.bindTexture(this.gl_context.TEXTURE_2D,  this.tex);
         if(shader){
+
             var samplerLocation = shader.GetSamplerLocation(this.tex_id);
+
             this.gl_context.uniform1i(samplerLocation , this.ID );
         }
     };
@@ -52,4 +58,3 @@ function FrameBufferTexture(w, h, ID){
 };
 FrameBufferTexture.prototype = new Texture();
 OMEGA.Omega3D.FrameBufferTexture = FrameBufferTexture;
-

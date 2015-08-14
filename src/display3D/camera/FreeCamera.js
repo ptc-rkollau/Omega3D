@@ -5,12 +5,12 @@ function FreeCamera(){
     this.drag  = 0.1;
     this.mass  = 1;
     this.force = 0;
-    this.pos = new Vector3D(0,0,0);
-    this.vel = new Vector3D(0,0,0);
-    this.rot = new Vector3D(0,0,0);
-    this.rotF = new Vector3D(0,0,0);
-    this.acc = new Vector3D(0,0,0);
-    this.rot_acc = new Vector3D(0,0,0);
+    this.pos = new Vector2(0,0,0);
+    this.vel = new Vector2(0,0,0);
+    this.rot = new Vector2(0,0,0);
+    this.rotF = new Vector2(0,0,0);
+    this.acc = new Vector2(0,0,0);
+    this.rot_acc = new Vector2(0,0,0);
 
     this.enabled = true;
     this.listener = null;

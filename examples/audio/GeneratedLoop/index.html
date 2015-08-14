@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+
+    <script src="../src/OmegaAudio.min.js"></script>
+
+</head>
+<script>
+var bar = 0;
+var bpm = 90;
+var cycles = 6;
+var cycle = 0;
+
+
+OMEGA.Audio.LoadSounds([{id:"kick", path:"sounds/DustyF1-kick6.wav"},
+    {id:"bass3", path:"sounds/DustyF1-acousticBass3.wav"},
+    {id:"snare", path:"sounds/DustyF1-rimSnare12.wav"},
+    {id:"roll", path:"sounds/DustyF1-roll1.wav"},
+    {id:"break", path:"sounds/DustyF1-break27.wav"},
+    {id:"break2", path:"sounds/DustyF1-break21.wav"},
+    {id:"vibes", path:"sounds/DustyF1-vibesSustain1.wav"},
+    {id:"vibes2", path:"sounds/DustyF1-vibesSustain2.wav"},
+
+    {id:"bass5", path:"sounds/DustyF2-bass1.wav"},
+    {id:"bell", path:"sounds/DustyF2-bellRide1.wav"},
+    {id:"chop", path:"sounds/DustyF2-clavChop1.wav"},
+    {id:"organ", path:"sounds/DustyF2-organChop1.wav"},
+    {id:"hat", path:"sounds/BlueFunk-ride1eHat.wav"},
+    {id:"cymbal", path:"sounds/BlueFunk-ride1sCymbal.wav"},
+    {id:"roll2", path:"sounds/BlueFunk-roll1.wav"},
+
+    {id:"brk", path:"sounds/COME10517.wav"},
+    {id:"brk2", path:"sounds/THINK1700.wav"},
+
+    {id:"kick-04", path:"sounds/DustyF1-kick6.wav"},
+    {id:"wood", path:"sounds/DustyF2-bellRide6.wav"},
+
+], onLoaded);
+
+
+function onLoaded(){
+    //setFirstPart(0);
+    setSecondPart(0);
+    //setThirdPart(0);
+    //setForthPart(0);
+
+
+}
+
+
+
+function setFirstPart(startBar){
+    bar = startBar;
+    var eightNoteTime = ( 60 / bpm ) * 0.5;
+    for( ; bar < startBar+3; bar++){
+        var time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("bass5", time);
+        OMEGA.Audio.PlaySound("kick", time);
+        OMEGA.Audio.PlaySound("kick", time + 4 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("snare", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 6 * eightNoteTime);
+        OMEGA.Audio.PlaySound("break", time + 3 * eightNoteTime);
+    }
+
+    for( ; bar < startBar+4; bar++){
+        var time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("vibes", time);
+        OMEGA.Audio.PlaySound("bass3", time);
+        OMEGA.Audio.PlaySound("kick", time);
+        OMEGA.Audio.PlaySound("kick", time + 4 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("snare", time + 6 * eightNoteTime);
+        OMEGA.Audio.PlaySound("cymbal", time + 3 * eightNoteTime);
+    }
+
+    for( ; bar < startBar+8; bar++){
+        var time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("vibes2", time+ 4 * eightNoteTime);
+        OMEGA.Audio.PlaySound("bass5", time);
+        OMEGA.Audio.PlaySound("kick", time);
+        OMEGA.Audio.PlaySound("kick", time + 4 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("snare", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 3 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 6 * eightNoteTime);
+    }
+
+    for( ; bar < startBar+9; bar++){
+        var time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("vibes", time);
+        OMEGA.Audio.PlaySound("vibes2", time+ 4 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("break2", time + 3 * eightNoteTime);
+
+        for( var  i =0; i<1;++i){
+            OMEGA.Audio.PlaySound("break", time + i * eightNoteTime);
+        }
+
+    }
+
+    var r = Math.random();
+    if(r < 0.5) setForthPart(bar);
+    else setThirdPart(bar);
+
+}
+function setSecondPart(startBar){
+    bar = startBar;
+    var time = 0;
+    var eightNoteTime = ( 60 / bpm ) * 0.5;
+    for( ; bar < startBar+3; bar++){
+        time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("bass5", time);
+        OMEGA.Audio.PlaySound("kick", time);
+        OMEGA.Audio.PlaySound("kick", time + 4 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("chop", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("organ", time + 6 * eightNoteTime);
+        OMEGA.Audio.PlaySound("break", time + 3 * eightNoteTime);
+
+
+        for (var i = 0; i < 8; ++i) {
+            OMEGA.Audio.PlaySound("hat", time + i * eightNoteTime);
+        }
+    }
+
+
+    for( ; bar < startBar+4; bar++){
+        time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("vibes", time);
+        OMEGA.Audio.PlaySound("chop", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("organ", time + 6 * eightNoteTime);
+        OMEGA.Audio.PlaySound("break", time + 3 * eightNoteTime);
+        OMEGA.Audio.PlaySound("cymbal", time + 7 * eightNoteTime);
+        OMEGA.Audio.PlaySound("roll2", time, 0.5);
+
+        for (var i = 0; i < 8; ++i) {
+            OMEGA.Audio.PlaySound("hat", time + i * eightNoteTime);
+        }
+
+    }
+
+
+    for( ; bar < startBar+8; bar++){
+        time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("bass5", time);
+        OMEGA.Audio.PlaySound("kick", time);
+        OMEGA.Audio.PlaySound("kick", time + 4 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("chop", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("organ", time + 6 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("snare", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 6 * eightNoteTime);
+        OMEGA.Audio.PlaySound("cymbal", time + 7 * eightNoteTime);
+
+        for (var i = 0; i < 8; ++i) {
+            OMEGA.Audio.PlaySound("hat", time + i * eightNoteTime);
+        }
+    }
+
+    var r = Math.random();
+    if(r < 0.5) setThirdPart(bar);
+    else setFirstPart(bar);
+
+
+}
+function setThirdPart(startBar){
+    bar = startBar;
+    var time;
+    var eightNoteTime = ( 60 / bpm ) * 0.5;
+    for( ; bar < startBar+1; bar++){
+        time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("cymbal", time );
+        OMEGA.Audio.PlaySound("break", time + 3 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 6 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 7 * eightNoteTime);
+        for (var i = 0; i < 4; ++i) {
+            OMEGA.Audio.PlaySound("hat", time + i*2 * eightNoteTime);
+        }
+    }
+    var rr = Math.random();
+    if(rr < 0.5) OMEGA.Audio.PlaySound("brk2", 0.001 + (startBar+1) * 8 * eightNoteTime);
+    else OMEGA.Audio.PlaySound("brk", 0.001 + (startBar+1) * 8 * eightNoteTime);
+
+
+    // bar += 1;
+    for( ; bar < startBar+3; bar++){
+        time = 0.001 + bar * 8 * eightNoteTime;
+
+        OMEGA.Audio.PlaySound("vibes", time);
+        OMEGA.Audio.PlaySound("cymbal", time );
+        OMEGA.Audio.PlaySound("cymbal", time + 3 * eightNoteTime);
+        OMEGA.Audio.PlaySound("cymbal", time + 6 * eightNoteTime);
+
+
+        OMEGA.Audio.PlaySound("kick", time);
+        OMEGA.Audio.PlaySound("kick", time + 4 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("chop", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("break", time + 3 * eightNoteTime);
+        for (var i = 0; i < 4; ++i) {
+            OMEGA.Audio.PlaySound("hat", time + i*2 * eightNoteTime);
+        }
+
+    }
+    cycle++;
+    if(cycle>=cycles)return;
+
+    var r = Math.random();
+    if(r < 0.5) setSecondPart(bar);
+    else setForthPart(bar);
+}
+function setForthPart(startBar) {
+    bar = startBar;
+    var time;
+    var eightNoteTime = ( 60 / bpm ) * 0.5;
+    for (; bar < startBar + 1; bar++) {
+        time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("wood", time);
+
+        OMEGA.Audio.PlaySound("kick-04", time );
+        OMEGA.Audio.PlaySound("kick-04", time + 4 * eightNoteTime );
+
+        OMEGA.Audio.PlaySound("snare", time + 6 * eightNoteTime);
+        for (var i = 0; i < 8; ++i) {
+            OMEGA.Audio.PlaySound("hat", time + i * eightNoteTime);
+        }
+
+    }
+
+
+    for (; bar < startBar + 3; bar++) {
+        time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("wood", time);
+        OMEGA.Audio.PlaySound("wood", time+ 0.25 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("wood", time+ 1 * eightNoteTime);
+        OMEGA.Audio.PlaySound("wood", time+ 5 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("kick-04", time );
+        OMEGA.Audio.PlaySound("kick-04", time + 4 * eightNoteTime );
+
+        OMEGA.Audio.PlaySound("snare", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 6 * eightNoteTime);
+        for (var i = 0; i < 8; ++i) {
+            OMEGA.Audio.PlaySound("hat", time + i * eightNoteTime);
+        }
+
+    }
+
+    for (; bar < startBar + 4; bar++) {
+        time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("wood", time);
+
+        OMEGA.Audio.PlaySound("wood", time+ 1 * eightNoteTime);
+        OMEGA.Audio.PlaySound("wood", time+ 5 * eightNoteTime);
+        OMEGA.Audio.PlaySound("wood", time+ 7 * eightNoteTime);
+
+        OMEGA.Audio.PlaySound("kick-04", time );
+        OMEGA.Audio.PlaySound("kick-04", time + 4 * eightNoteTime );
+
+        OMEGA.Audio.PlaySound("snare", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 6 * eightNoteTime);
+        for (var i = 0; i < 8; ++i) {
+            OMEGA.Audio.PlaySound("hat", time + i * eightNoteTime);
+        }
+
+    }
+
+    for (; bar < startBar + 5; bar++) {
+        time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("vibes", time);
+        OMEGA.Audio.PlaySound("wood", time);
+
+
+        OMEGA.Audio.PlaySound("kick-04", time );
+        OMEGA.Audio.PlaySound("kick-04", time + 4 * eightNoteTime );
+
+        OMEGA.Audio.PlaySound("snare", time + 2 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 4 * eightNoteTime);
+        OMEGA.Audio.PlaySound("snare", time + 6 * eightNoteTime);
+        for (var i = 0; i < 8; ++i) {
+            OMEGA.Audio.PlaySound("hat", time + i * eightNoteTime);
+        }
+
+    }
+
+
+    for (; bar < startBar + 6; bar++) {
+        time = 0.001 + bar * 8 * eightNoteTime;
+        OMEGA.Audio.PlaySound("vibes", time);
+        for (var i = 0; i < 8; ++i) {
+            OMEGA.Audio.PlaySound("hat", time + i * eightNoteTime);
+        }
+
+    }
+    var r = Math.random();
+    if(r < 0.5) setSecondPart(bar);
+    else setFirstPart(bar);
+}
+</script>
+<body>
+<img  src="../../omega.png" style="width:150px;"/>
+<p><b>OMEGA.Audio</b> - The Procedurally generated WebAudio Loop Demo</p>
+
+</body>
+</html>

@@ -46,6 +46,11 @@ function TorusGeometry( radius, tube_radius, segW, segH ){
 
         }
     }
+
+    /*TANGENTS, BITANGENTS */
+   // Geometry.ComputeTangentBasis( this.vertices, this.uvs, this.normals, this.tangents, this.bitangents);
+
+
     for(var i=0;i< this.indexes.length;i+=9){
         var v1 = { x: this.vertices[this.indexes[i]], y: this.vertices[this.indexes[i+1]], z: this.vertices[this.indexes[i+2]] };
         var v2 = { x: this.vertices[this.indexes[i + 3]], y: this.vertices[this.indexes[i+4]], z: this.vertices[this.indexes[i+5]] };
@@ -53,7 +58,7 @@ function TorusGeometry( radius, tube_radius, segW, segH ){
         this.faces.push( { a:v1, b:v2, c:v3 } );
 
     }
-    console.log("GEOMETRY : torus created");
+    OMEGA.Omega3D.Log("GEOMETRY : torus created");
 };
 TorusGeometry.prototype = new Geometry();
 OMEGA.Omega3D.Geometry.TorusGeometry = TorusGeometry;

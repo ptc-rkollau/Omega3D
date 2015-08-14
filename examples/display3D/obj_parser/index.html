@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Omega3d - OBJ File Parser demo</title>
     <link rel="icon" href="../../favicon.ico" type="image/x-icon">
-    <script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>
+    <script language="JavaScript" src="../src/Omega3d.min.v0014.js"></script>
 </head>
 <script type="text/javascript">
     var utils;
@@ -19,7 +19,7 @@
     function omega3DStart() {
         objParser = new Omega3D.parsers.OBJParser();
         utils     = new OMEGA.Utils;
-        utils.LoadImages(["Map-COL.jpg"], onLoadComplete);
+        utils.LoadImages(["Map-COL.jpg", "../../obj/astro_texture.jpg"], onLoadComplete);
     }
     function onLoadComplete( images ){
         scene  = new Omega3D.Scene();
@@ -35,13 +35,15 @@
         renderer.SetRenderChain( chain );
 
         objects    = new Array();
-        objects[0] = objParser.ParseToObject3D("head.obj"  , 0.1, new Omega3D.Material(new Omega3D.Shaders.Diffuse(true), [new Omega3D.BasicTexture(images[0])] ));
+        objects[0] = objParser.ParseToObject3D("../../obj/astroboy.obj"  , 0.05, new Omega3D.Material(new Omega3D.Shaders.Basic(true), [new Omega3D.BasicTexture(images[1])] ));
         objects[1] = objParser.ParseToObject3D("gnome2.obj", 1.0, new Omega3D.Material(new Omega3D.Shaders.Phong(false), [new Omega3D.BasicTexture()]));
 
         for(var i = 0; i< objects.length; i++){
             scene.addChild( objects[i] );
             objects[i].SetPosition(-0.3+i*0.75, 0, -1.5  );
         }
+
+        objects[0].SetPosition(-0.25, -0.5, -1.5);
         render();
     }
 

@@ -1,4 +1,4 @@
-function OBJParser(){
+function OBJParser( debug ){
     var LINE_FEED = String.fromCharCode(10);
     var SPACE     = String.fromCharCode(32);
     var SLASH    = "/";
@@ -8,8 +8,9 @@ function OBJParser(){
     var INDEX_DATA = "f";
     var vertexDataIsZXY = false;
     var scale = 1.0;
-    var mirrorUv = false;
+    var mirrorUv = true;
     var faceIndex = 0;
+    this.debug = debug || false;
 
 
     var temp_vertices = new Array(), temp_normals = new Array(), temp_uvs = new Array(), temp_colors = new Array();
@@ -31,6 +32,7 @@ function OBJParser(){
 
         var obj_mesh = new Omega3D.Mesh( obj_geom )
         var object = new Omega3D.Object3D( obj_mesh, material );
+
         reset();
         return object;
     };
@@ -48,24 +50,25 @@ function OBJParser(){
     };
 
     this.parseFile = function( file_path, scale_factor ){
-        var xmlhttp = new XMLHttpRequest();
+        var self = this;
+        var xmlhttp = new XMLHttpRequest() || new ActiveXObject('MSXML2.XMLHTTP');
         xmlhttp.open ("GET", file_path, false);
-        xmlhttp.send ();
+        xmlhttp.onreadystatechange = function(e){
+            scale = scale_factor;var obj_content = xmlhttp.responseText;
+            var lines       = obj_content.split(LINE_FEED);
+            var loop        = lines.length;
+            for(var i = 0; i< loop;i++){
+                self.parseLine(lines[i]);
+            };
 
-        scale = scale_factor;var obj_content = xmlhttp.responseText;
-        var lines       = obj_content.split(LINE_FEED);
-        var loop        = lines.length;
-        for(var i = 0; i< loop;i++){
-            this.parseLine(lines[i]);
-        };
-
-
-
-        console.log(file_path + " has been parsed, some info:");
-        console.log("VERTEXES : " + vertices.length / 3 );
-        console.log("NORMALS  : " + normals.length / 3 );
-        console.log("UV       : " + uvs.length / 2 );
-        console.log("INDEXES  : " + indexes.length  );
+            //if(!this.debug) return;
+            console.log(file_path + " has been parsed, some info:");
+            console.log("VERTEXES : " + vertices.length / 3 );
+            console.log("NORMALS  : " + normals.length / 3 );
+            console.log("UV       : " + uvs.length / 2 );
+            console.log("INDEXES  : " + indexes.length  );
+        }
+        xmlhttp.send (null);
 
     };
     this.parseLine = function(line){

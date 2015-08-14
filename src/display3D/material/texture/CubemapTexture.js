@@ -16,7 +16,7 @@ function CubemapTexture( imgs, needsUpdate, ID ){
 
 
         for (var i = 0; i < faces.length; i++) {
-            this.gl_context.pixelStorei( this.gl_context.UNPACK_FLIP_Y_WEBGL, false);
+            this.gl_context.pixelStorei( this.gl_context.UNPACK_FLIP_Y_WEBGL, true);
             this.gl_context.bindTexture( this.gl_context.TEXTURE_CUBE_MAP, texture);
             this.gl_context.texImage2D(faces[i], 0,  this.gl_context.RGBA,  this.gl_context.RGBA,  this.gl_context.UNSIGNED_BYTE, image[i]);
             this.gl_context.bindTexture( this.gl_context.TEXTURE_CUBE_MAP, null);

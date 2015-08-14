@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Spherical Envrionment Mapping Demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0015.js"></script>
+
+</head>
+<script type="text/javascript">
+    var cnvs, images, utils, omega, renderer,chain, scene, cam, male, gnome, suzanne;
+    var mat, mat1, mat2;
+
+    function init(){
+        var utils = new OMEGA.Utils();
+        utils.LoadImages(["matcap.jpg","matcap2.jpg", "matcap3.jpg", "matcap4.png", "matcap5.jpg", "matcap6.jpg"], onLoadDone);
+    }
+
+
+    function onLoadDone( imgs ){
+        images = imgs;
+
+        Omega3D.Recalibrate();
+        scene = new Omega3D.Scene();
+        cam   = new Omega3D.cameras.Camera();
+        mat   = new Omega3D.SEMMaterial([new Omega3D.BasicTexture(images[0], true)], scene);
+
+        var oo = new Omega3D.parsers.OBJParser();
+        gnome   = oo.ParseToObject3D("../../obj/pistol.obj",0.3, mat);
+        scene.addChild( gnome );
+        gnome.SetRotation(Math.PI, 0, 0);
+
+        renderer = new Omega3D.WebGLRenderer();
+        chain = new Omega3D.RenderChain();
+        chain.AddRenderPass( new Omega3D.RenderPass(renderer, scene, cam ));
+        renderer.SetRenderChain( chain );
+
+
+        cam.LookAt(0, 0, 0, [ 0, -0.5, -1.5]);
+
+        render();
+    }
+
+    function render(){
+        requestAnimationFrame( render );
+        gnome.Rotate( 0, 0.01, 0);
+        renderer.render();
+    }
+
+
+    function setMaterial(index){
+        mat.GetTextures()[0].SetImage( images[index] );
+
+    }
+</script>
+<body onload="init();" style="padding:0;margin:0;">
+<canvas id="omega" width="900px" height="900px"></canvas>
+<a href="http://lab.rackdoll.nl/js/omega/" target="_blank"><img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/></a>
+<select style="position:absolute;right:25px; top:20px;" onChange="javascript:setMaterial(this.selectedIndex);">
+    <option >texture 01</option>
+    <option >texture 02</option>
+    <option >texture 03</option>
+    <option >texture 04</option>
+    <option >texture 05</option>
+    <option >texture 06</option>
+</select>
+</body>
+</html>

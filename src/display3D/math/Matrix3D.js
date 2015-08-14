@@ -42,14 +42,14 @@ function Matrix3D(){
 
 
     function getScale(){
-        return  new Vector3D( m0, m5, m10);
+        return  new Vector2( m0, m5, m10);
     }
     function getPosition(){
-        return new Vector3D( m12, m13, m14);
+        return new Vector2( m12, m13, m14);
     }
 
     function rotate( axis, radians ){
-        //axis   : Unit Vector3D
+        //axis   : Unit Vector2
         //radians: float
         identity();
         this.c = Math.cos( radians );

@@ -1,42 +1,44 @@
-function CubeGeometry(size){
+function CubeGeometry(width, height, depth){
     Geometry.apply( this );
-    var halfScale = size || this.scale;
+    var halfScaleW = width/2  || this.scale;
+    var halfScaleH = height/2 || halfScaleW || this.scale;
+    var halfScaleD = depth/2  || halfScaleW || this.scale;
     this.vertices = [
         /* Front face*/
-            -1.0*halfScale, -1.0*halfScale,  1.0*halfScale,
-            1.0*halfScale, -1.0*halfScale,  1.0*halfScale,
-            1.0*halfScale,  1.0*halfScale,  1.0*halfScale,
-            -1.0*halfScale,  1.0*halfScale,  1.0*halfScale,
+            -1.0*halfScaleW, -1.0*halfScaleH,  1.0*halfScaleD,
+            1.0*halfScaleW, -1.0*halfScaleH,  1.0*halfScaleD,
+            1.0*halfScaleW,  1.0*halfScaleH,  1.0*halfScaleD,
+            -1.0*halfScaleW,  1.0*halfScaleH,  1.0*halfScaleD,
 
         /* Back face*/
-            -1.0*halfScale, -1.0*halfScale, -1.0*halfScale,
-            -1.0*halfScale,  1.0*halfScale, -1.0*halfScale,
-            1.0*halfScale,  1.0*halfScale, -1.0*halfScale,
-            1.0*halfScale, -1.0*halfScale, -1.0*halfScale,
+            -1.0*halfScaleW, -1.0*halfScaleH, -1.0*halfScaleD,
+            -1.0*halfScaleW,  1.0*halfScaleH, -1.0*halfScaleD,
+            1.0*halfScaleW,  1.0*halfScaleH, -1.0*halfScaleD,
+            1.0*halfScaleW, -1.0*halfScaleH, -1.0*halfScaleD,
 
         /* Top face*/
-            -1.0*halfScale,  1.0*halfScale, -1.0*halfScale,
-            -1.0*halfScale,  1.0*halfScale,  1.0*halfScale,
-            1.0*halfScale,  1.0*halfScale,  1.0*halfScale,
-            1.0*halfScale,  1.0*halfScale, -1.0*halfScale,
+            -1.0*halfScaleW,  1.0*halfScaleH, -1.0*halfScaleD,
+            -1.0*halfScaleW,  1.0*halfScaleH,  1.0*halfScaleD,
+            1.0*halfScaleW,  1.0*halfScaleH,  1.0*halfScaleD,
+            1.0*halfScaleW,  1.0*halfScaleH, -1.0*halfScaleD,
 
         /* Bottom face*/
-            -1.0*halfScale, -1.0*halfScale, -1.0*halfScale,
-            1.0*halfScale, -1.0*halfScale, -1.0*halfScale,
-            1.0*halfScale, -1.0*halfScale,  1.0*halfScale,
-            -1.0*halfScale, -1.0*halfScale,  1.0*halfScale,
+            -1.0*halfScaleW, -1.0*halfScaleH, -1.0*halfScaleD,
+            1.0*halfScaleW, -1.0*halfScaleH, -1.0*halfScaleD,
+            1.0*halfScaleW, -1.0*halfScaleH,  1.0*halfScaleD,
+            -1.0*halfScaleW, -1.0*halfScaleH,  1.0*halfScaleD,
 
         /* Right face*/
-            1.0*halfScale, -1.0*halfScale, -1.0*halfScale,
-            1.0*halfScale,  1.0*halfScale, -1.0*halfScale,
-            1.0*halfScale,  1.0*halfScale,  1.0*halfScale,
-            1.0*halfScale, -1.0*halfScale,  1.0*halfScale,
+            1.0*halfScaleW, -1.0*halfScaleH, -1.0*halfScaleD,
+            1.0*halfScaleW,  1.0*halfScaleH, -1.0*halfScaleD,
+            1.0*halfScaleW,  1.0*halfScaleH,  1.0*halfScaleD,
+            1.0*halfScaleW, -1.0*halfScaleH,  1.0*halfScaleD,
 
         /* Left face*/
-            -1.0*halfScale, -1.0*halfScale, -1.0*halfScale,
-            -1.0*halfScale, -1.0*halfScale,  1.0*halfScale,
-            -1.0*halfScale,  1.0*halfScale,  1.0*halfScale,
-            -1.0*halfScale,  1.0*halfScale, -1.0*halfScale
+            -1.0*halfScaleW, -1.0*halfScaleH, -1.0*halfScaleD,
+            -1.0*halfScaleW, -1.0*halfScaleH,  1.0*halfScaleD,
+            -1.0*halfScaleW,  1.0*halfScaleH,  1.0*halfScaleD,
+            -1.0*halfScaleW,  1.0*halfScaleH, -1.0*halfScaleD
     ];
 
     this.normals = [
@@ -118,8 +120,9 @@ function CubeGeometry(size){
         1.0, 1.0,
         0.0, 1.0
     ];
-
-    console.log("GEOMETRY : cube created");
+    /*TANGENTS, BITANGENTS */
+   // OMEGA.Omega3D.VBOUtil.ComputeTangentBasis( this.vertices, this.uvs, this.normals, this.tangents, this.bitangents);
+    OMEGA.Omega3D.Log("GEOMETRY : cube created");
 
 };
 CubeGeometry.prototype = new Geometry();

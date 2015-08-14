@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Basic ShadowMapping Demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+   <!-- <script language="JavaScript" src="../src/Omega3d.min.v0015.js"></script>-->
+    <script language="JavaScript" src="../../../src/display3D/math/mat3.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/common.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/mat4.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/Vector2.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/Vector3.js"></script>
+    <script language="JavaScript" src="../../../src/utils/Utils.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/Omega3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/utils/ShaderUtil.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/utils/VBOUtil.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Object3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/LODObject3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cube.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cylinder.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Light.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Scene.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Sphere.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Torus.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/Camera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/DepthCamera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/FreeCamera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/Material.js"></script>
+    <script language="JavaScript" src="../../../src/redundant/MultiMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/ShaderMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/BasicMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/ShadowMapMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/CubeMapMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Components.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shaders.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/Texture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/BasicTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/CubemapTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/ShadowMapTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/Mesh.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/Geometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CubeGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CylinderGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SphereGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SquareGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TorusGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TriangleGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/IcosaGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/OBJParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/ColladaParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/WebGLRenderer.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/Pass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/ProxyPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/PostProcessingPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/ShadowMapPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderToTexturePass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderChain.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/FrameBufferTexture.js"></script>
+    <script language="JavaScript" src="../../../src/listeners/KeyListener.js"></script>
+</head>
+<script type="text/javascript">
+    var cnvs, images, utils, omega, renderer,chain, scene01, scene02, cam01,depthCam, gnome, monkey, person,cube,  floor, light,skybox_material;
+    var dummyMat, shadowMat, shadowMat2, shadowMat3;
+    function init(){
+        var utils = new OMEGA.Utils();
+        utils.LoadImages(["../../images/misc/concrete.jpg","../../images/misc/wood.jpg","../../images/helpers/uvgrid.jpg",
+            "../../images/skyboxes/skybox_indoor/posx.jpg",
+            "../../images/skyboxes/skybox_indoor/negx.jpg",
+            "../../images/skyboxes/skybox_indoor/posy.jpg",
+            "../../images/skyboxes/skybox_indoor/negy.jpg",
+            "../../images/skyboxes/skybox_indoor/posz.jpg",
+            "../../images/skyboxes/skybox_indoor/negz.jpg"], onLoadDone);
+    }
+    function onLoadDone(imgs){
+        images = imgs;
+        Omega3D.Recalibrate();
+
+        //scene.
+        scene01 = new Omega3D.Scene();
+        scene02 = new Omega3D.Scene();
+
+        //light.
+        light = new Omega3D.Light(Omega3D.POINT_LIGHT);
+        light.SetPosition(-1,-2, 0 );
+        light.SetAmbient(0.1, 0.1, 0.1);
+        light.SetDiffuse( 1.0, 1.0, 1.0);
+        light.GenerateGLSL();
+        scene02.addLight(light);
+
+
+        //cameras.
+        cam01     = new Omega3D.cameras.Camera;
+        cam01.LookAt( 0, 0, 0, [0, -3, 4]);
+
+        depthCam  = new Omega3D.cameras.Camera;
+        depthCam.far = 200;
+        depthCam.LookAt(0, 0, 0, light.GetPosition());
+
+
+        //materials.
+        dummyMat          = new Omega3D.BasicMaterial    ([], scene01);
+        skybox_material   = new Omega3D.CubeMapMaterial  ( [new Omega3D.CubemapTexture([images[3],images[4],images[5],images[6],images[7],images[8]])], scene02);
+        shadowMat         = new Omega3D.ShadowMapMaterial( [new Omega3D.BasicTexture(images[0])], scene02,depthCam );
+        shadowMat2        = new Omega3D.ShadowMapMaterial( [new Omega3D.BasicTexture(images[1])], scene02,depthCam );
+        shadowMat3        = new Omega3D.ShadowMapMaterial( [new Omega3D.BasicTexture(images[2])], scene02,depthCam );
+
+
+        //geometries.
+        var g    = new Omega3D.Geometry.SquareGeometry(2,2, 10, 10);
+        var m    = new Omega3D.Mesh(g);
+        floor    = new Omega3D.Object3D(m, shadowMat);
+
+
+        //objects.
+        var oo  = new Omega3D.parsers.OBJParser();
+        cube   =  oo.ParseToObject3D("../../obj/cube.obj"   ,5.25, skybox_material);
+        person =  oo.ParseToObject3D("../../obj/male02.obj" ,0.01, dummyMat);
+        gnome  =  oo.ParseToObject3D("../../obj/gnome2.obj" ,2   , dummyMat);
+        monkey =  oo.ParseToObject3D("../../obj/suzanne.obj",0.4 , dummyMat);
+
+
+        //position, rotation.
+        floor.SetRotation(Math.PI/2,0,0);
+
+        person.SetPosition(1, 0, 1);
+        person.SetRotation( Math.PI, 0, 0);
+
+        gnome.SetPosition(-1, -1, -1);
+        gnome.SetRotation( Math.PI, Math.PI, 0);
+
+
+        //add.
+        scene01.addChild( person );
+        scene01.addChild( gnome );
+        scene01.addChild( monkey );
+
+        scene02.addChild( floor );
+        scene02.addChild( cube );
+
+
+        //render definition.
+        renderer = new Omega3D.WebGLRenderer;
+        chain    = new Omega3D.RenderChain();
+        chain.AddRenderPass( new ShadowMapPass(renderer,scene01,depthCam,shadowMat.shadowMapTexture));
+        chain.AddRenderPass( new ProxyPass( this, this.swapMaterialsShadow ));
+        chain.AddRenderPass( new RenderPass( renderer,scene02,cam01));
+        chain.AddRenderPass( new ProxyPass( this, this.swapMaterialsBack ));
+        renderer.SetRenderChain(chain);
+
+        //start render.
+        render();
+    }
+
+    //Swap materials.
+    function swapMaterialsShadow(){
+        scene01.removeChild( monkey ); //have to remove first, before we can set new object material.
+        scene01.removeChild( gnome );
+        scene01.removeChild( person );
+
+        person.SetMaterial(shadowMat3); //swap material.
+        gnome.SetMaterial(shadowMat);
+        monkey.SetMaterial(shadowMat2);
+
+        scene02.addChild( person ); //add to other scene.
+        scene02.addChild( gnome );
+        scene02.addChild( monkey );
+    }
+    function swapMaterialsBack(){
+        scene02.removeChild( monkey ); //have to remove first, before we can set new object material.
+        scene02.removeChild( gnome );
+        scene02.removeChild( person );
+
+        person.SetMaterial(dummyMat); //swap material.
+        gnome.SetMaterial(dummyMat);
+        monkey.SetMaterial(dummyMat);
+
+        scene01.addChild( person ); //add to other scene.
+        scene01.addChild( gnome );
+        scene01.addChild( monkey );
+    }
+
+
+    //RENDER.
+    function render(){
+        requestAnimationFrame(render);
+        cam01.LookAt( 0, 0, 0, [ Math.cos( scene02.getTime()/10) * 4,-3, Math.sin(scene02.getTime()/10) * 4]);
+        light.SetPosition(Math.cos( scene02.getTime()/2 + Math.PI/2) * 3, -3, Math.sin(scene02.getTime()/2+ Math.PI/2) * 3 );
+        depthCam.LookAt(0, 0, 0, light.GetPosition());
+
+        monkey.Rotate(0.01, 0.01, 0.02);
+        monkey.SetPosition(Math.cos( scene02.getTime()/2)*0.5, -1, Math.sin(scene02.getTime()/2)*0.5)
+        renderer.render();
+    }
+
+
+
+</script>
+<body onload="init();" style="padding:0;margin:0;">
+<canvas id="omega" width="900px" height="900px"></canvas>
+<a href="http://lab.rackdoll.nl/js/omega/" target="_blank"><img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/></a>
+</body>
+</html>

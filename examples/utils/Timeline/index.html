@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>OMEGA Timeline demo.</title>
+    <script src="../../../src/utils/Utils.js"></script>
+</head>
+
+<script type="text/javascript">
+    var timeline = new OMEGA.Utils.Timeline(true);
+    timeline.Add( 1000, this.trigger0 );
+    timeline.Add( 3000, this.trigger1 );
+    timeline.Add( 3000, this.trigger2 );
+    timeline.Add( 6000, this.trigger3 );
+    timeline.On();
+
+    function trigger0(){
+        console.log("trigger on 0.0 - 0");
+    }
+
+    function trigger1(){
+        console.log("trigger on 3.0 - 1");
+    }
+
+    function trigger2(){
+        console.log("trigger on 3.0 - 2");
+    }
+
+    function trigger3(){
+        console.log("trigger on 6.0");
+        timeline.Reset();
+    }
+
+    function render() {
+        requestAnimationFrame(render);
+        timeline.Tick();
+    }
+    render();
+</script>
+
+<body>
+<canvas id="omega" width="700px" height="300px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

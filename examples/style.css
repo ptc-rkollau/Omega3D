@@ -15,6 +15,7 @@ div {
 a{
     color:green;
 }
+#navlist { list-style-image: url(favicon.ico); }
 #ffbb {
     position:relative;
     left:45%;

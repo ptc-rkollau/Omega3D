@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Normalmap demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../../../src/display3D/math/mat3.js"></script>
+    <!--<script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>-->
+    <script language="JavaScript" src="../../../src/display3D/math/common.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/mat4.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/Vector3.js"></script>
+    <script language="JavaScript" src="../../../src/utils/Utils.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/Omega3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Object3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/LODObject3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cube.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cylinder.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Light.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Scene.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Sphere.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Torus.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/Camera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/FreeCamera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/Material.js"></script>
+    <script language="JavaScript" src="../../../src/redundant/MultiMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/ShaderMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Components.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shaders.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/Texture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/BasicTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/CubemapTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/Mesh.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/Geometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CubeGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CylinderGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SphereGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SquareGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TorusGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TriangleGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/IcosaGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/OBJParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/ColladaParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/WebGLRenderer.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/Pass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderChain.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/FrameBufferTexture.js"></script>
+    <script language="JavaScript" src="../../../src/listeners/KeyListener.js"></script>
+
+</head>
+<script type="x-shader/x-vertex" id="vertexshader">
+        uniform vec3 light01Pos;
+        uniform vec3 light01Color;
+        varying vec2 vTexCoord;
+        varying vec3 vLightWeight;
+        varying vec3 vLightPos;
+        varying vec3 vNormal;
+        varying vec3 vPos;
+
+
+        void main(void){
+            vec4 mvPos      = uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
+            vec4 mvLight01  = uViewMatrix * vec4(light01Pos.xyz, 1.0);
+            vec3    tNormal = uNormalMatrix * aVertexNormal;
+            gl_Position     = uProjectionMatrix * mvPos;
+
+            vTexCoord   = aTextureCoord;
+            vLightPos   = mvLight01.xyz;
+            vPos        = mvPos.xyz;
+            vNormal     = tNormal;
+        }
+</script>
+<script type="x-shader/x-vertex" id="fragmentshader">
+        uniform sampler2D tex;
+        varying vec2 vTexCoord;
+        varying vec3 vLightWeight;
+        varying vec3 vLightPos;
+        varying vec3 vPos;
+        varying vec3 vNormal;
+
+        void main(void){
+            vec3 color   = vec3(0.8, 0.4, 0);
+            vec3 normal  = texture2D(tex, vec2(vTexCoord.s, vTexCoord.t)).rgb * 2.0 - 1.0;
+            vec3 n       = normalize(vNormal + normal);
+            vec3  light01Dir       = normalize( vLightPos.xyz - vPos.xyz );
+            float dirLight01Weight = max(dot(n, light01Dir), 0.0);
+            vec3 ambientColor      = vec3( 0, 0, 0 );
+            vec3 light01FinalColor =  color * dirLight01Weight;
+            gl_FragColor = vec4( ambientColor + light01FinalColor , 1.0);
+        }
+</script>
+<script type="text/javascript">
+    var images;
+    var scene, cam, renderer, chain, mat;
+    var cube;
+    function init(){
+        //load images.
+        var utils = new OMEGA.Utils;
+        utils.LoadImages(["normal_4.png"], onLoadDone);
+    }
+
+    function onLoadDone( imgs ){
+        images = imgs;
+
+        //setup scene.
+        scene = new Omega3D.Scene();
+        cam   = new Omega3D.cameras.Camera();
+//        mat   = new Omega3D.ShaderMaterial({
+//            uniforms: {
+//
+//                light01Pos:{
+//                    type:"vec3",
+//                    value:[0, 0, 3]
+//                },
+//                light01Color:{
+//                    type:"vec3",
+//                    value:[1, 1, 1]
+//                }
+//            },
+//            vertex_src:document.getElementById( 'vertexshader' ).textContent,
+//            fragment_src:document.getElementById( 'fragmentshader' ).textContent
+//        });
+        var geom = new Omega3D.Geometry.IcosaGeometry(1,1);
+        var mesh = new Omega3D.Mesh( geom );
+
+        var tex = new Omega3D.BasicTexture();
+        var sha = new Omega3D.Shaders.Basic(false, [1, 0, 0]);
+        var m = new Omega3D.Material(sha, [tex]);
+        cube    = new Omega3D.Object3D( mesh, m );
+        cube.SetRotation(0, Math.PI/4, 0);
+        scene.addChild(cube);
+
+        cam.LookAt( 0, 0, 0, [0, 0, 3]);
+
+
+        //setup renderer.
+        renderer = new Omega3D.WebGLRenderer();
+        chain    = new Omega3D.RenderChain();
+        chain.AddRenderPass( new RenderPass( renderer, scene, cam ));
+        renderer.SetRenderChain(chain);
+        render();
+    }
+
+    function render(){
+        requestAnimationFrame(render);
+        cube.SetRotation( scene.getTime()/5, Math.cos(scene.getTime()/5), scene.getTime()/5);
+        renderer.render();
+    }
+</script>
+<body onload="init();">
+<canvas id="omega" style="border: none;" width="800" height="500" ></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

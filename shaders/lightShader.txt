@@ -1,0 +1,39 @@
+uniform vec3 ulight0Specular;
+
+uniform vec3 ulight0Direction;
+
+uniform vec3 ulight0Ambient;
+
+uniform vec3 ulight0Diffuse;
+
+
+varying vec3 vLightWeight;
+
+
+vec3 light0( vec3 tNormal ){
+
+  vec4 mvVertex = uViewMatrix * uModelMatrix * vec4( aVertexPos.xyz, 1.0);
+
+  vec4 mvLight  = uViewMatrix * vec4(ulight0Position, 1.0);
+
+  vec3 lightDir = normalize( mvLight.xyz - mvVertex.xyz );
+
+  float dirLightWeight  = max(dot(tNormal, lightDir), 0.0);
+
+  vec3 reflectionVector  = normalize(reflect(lightDir, tNormal));
+  vec3 viewVectorEye     = normalize(mvVertex.xyz);
+  float rdotv  = max(dot(reflectionVector, viewVectorEye), 0.0);
+  float specularLightWeighting = pow(rdotv, 10.0);
+  vec3 lightFinalColor = ulight0Ambient + (ulight0Diffuse * dirLightWeight);
+
+  return lightFinalColor;
+
+}
+
+void main(void){
+  vec3 injctd_tNormal  = uNormalMatrix * aVertexNormal;
+  vec4 injctd_mvVertex = uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
+  vLightWeight += light0(injctd_tNormal);
+  gl_PointSize = uPointSize;
+  gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix *    vec4(aVertexPos, 1.0);
+}

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Shadows demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../../../src/display3D/math/mat3.js"></script>
+    <!--<script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>-->
+    <script language="JavaScript" src="../../../src/display3D/math/common.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/mat4.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/Vector3.js"></script>
+    <script language="JavaScript" src="../../../src/utils/Utils.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/Omega3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Object3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/LODObject3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cube.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cylinder.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Light.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Scene.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Sphere.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Torus.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/Camera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/FreeCamera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/Material.js"></script>
+    <script language="JavaScript" src="../../../src/redundant/MultiMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/ShaderMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Components.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shaders.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/Texture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/BasicTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/CubemapTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/Mesh.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/Geometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CubeGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CylinderGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SphereGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SquareGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TorusGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TriangleGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/IcosaGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/OBJParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/ColladaParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/WebGLRenderer.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/Pass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderChain.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/FrameBufferTexture.js"></script>
+    <script language="JavaScript" src="../../../src/listeners/KeyListener.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/utils/ShaderUtil.js"></script>
+</head>
+
+<script type="text/javascript">
+    var chain, renderer, scene, cam, scale;
+    function init(){
+        scale = 20.0;
+        buildScene();
+    }
+
+    function buildScene(){
+        scene     = new Omega3D.Scene();
+        cam       = new Omega3D.cameras.Camera();
+
+
+        buildFloor( scene );
+        buildWalls( scene );
+        buildContent( scene );
+
+        renderer = new Omega3D.WebGLRenderer();
+        chain    = new Omega3D.RenderChain();
+        chain.AddRenderPass( new RenderPass( renderer, scene, cam  ));
+        renderer.SetRenderChain( chain );
+
+        render();
+    }
+
+    function buildFloor( scene ){
+        var floorTex  = new Omega3D.BasicTexture();
+        var floorSha  = new Omega3D.Shaders.Basic(false, [0, 0, 1]);
+        var floorMat  = new Omega3D.Material( floorSha, [floorTex]);
+        var floorGeom = new Omega3D.Geometry.SquareGeometry( 1.0, 1.0 );
+        var floorMesh = new Omega3D.Mesh( floorGeom );
+        var floorObj  = new Omega3D.Object3D(floorMesh, floorMat);
+        floorObj.SetScale( scale, scale);
+        floorObj.SetRotation( Math.PI/2, 0, 0);
+        scene.addChild( floorObj );
+    }
+
+    function buildWalls( scene ){
+        var columnWidth = 2.0;
+        var columnHeight = 20.0;
+
+        var wallTex  = new Omega3D.BasicTexture();
+        var wallSha  = new Omega3D.Shaders.Basic(false, [0, 1, 0]);
+        var wallMat  = new Omega3D.Material( wallSha, [wallTex]);
+        var wallGeom = new Omega3D.Geometry.CubeGeometry( columnWidth, columnHeight);
+        var wallMesh = new Omega3D.Mesh( wallGeom );
+
+
+        //pillars
+        var wallObj  = new Omega3D.Object3D(wallMesh, wallMat);
+        wallObj.SetPosition( -scale + (columnWidth/2),columnHeight/2 + 0.01, -scale + (columnWidth/2));
+        scene.addChild( wallObj );
+
+        wallObj  = new Omega3D.Object3D(wallMesh, wallMat);
+        wallObj.SetPosition( scale - (columnWidth/2),columnHeight/2 + 0.01, scale - (columnWidth/2));
+        scene.addChild( wallObj );
+
+        wallObj  = new Omega3D.Object3D(wallMesh, wallMat);
+        wallObj.SetPosition( scale - (columnWidth/2),columnHeight/2 + 0.01, -scale + (columnWidth/2));
+        scene.addChild( wallObj );
+
+        wallObj  = new Omega3D.Object3D(wallMesh, wallMat);
+        wallObj.SetPosition( -scale + (columnWidth/2),columnHeight/2 + 0.01, scale - (columnWidth/2));
+        scene.addChild( wallObj );
+
+
+        //walls
+        wallTex  = new Omega3D.BasicTexture();
+        wallSha  = new Omega3D.Shaders.Basic(false, [1, 0, 0]);
+        wallMat  = new Omega3D.Material( wallSha, [wallTex]);
+        wallGeom = new Omega3D.Geometry.SquareGeometry( scale, columnHeight/2);
+        wallMesh = new Omega3D.Mesh( wallGeom );
+
+        wallObj  = new Omega3D.Object3D(wallMesh, wallMat);
+        wallObj.SetPosition(0, columnHeight/2, scale+0.01);
+        scene.addChild( wallObj );
+
+        wallObj  = new Omega3D.Object3D(wallMesh, wallMat);
+        wallObj.SetPosition(0, columnHeight/2, -scale-0.01);
+        scene.addChild( wallObj );
+
+        wallObj  = new Omega3D.Object3D(wallMesh, wallMat);
+        wallObj.SetPosition(-scale-0.01, columnHeight/2, 0);
+        wallObj.SetRotation(0, Math.PI/2,0);
+        scene.addChild( wallObj );
+
+        wallObj  = new Omega3D.Object3D(wallMesh, wallMat);
+        wallObj.SetPosition(scale+0.01, columnHeight/2, 0);
+        wallObj.SetRotation(0, -Math.PI/2,0);
+        scene.addChild( wallObj );
+    }
+
+    function buildContent( scene ){
+        var wallTex  = new Omega3D.BasicTexture();
+        var wallSha  = new Omega3D.Shaders.Basic(false, [1, 1, 0]);
+        var wallMat  = new Omega3D.Material( wallSha, [wallTex]);
+
+        var columnGeom = new Omega3D.Geometry.CubeGeometry( 1.0, 5.0);
+        var columnMesh = new Omega3D.Mesh( columnGeom );
+        var columnObj  = new Omega3D.Object3D(columnMesh, wallMat);
+        columnObj.SetPosition( 0, 2.5, 0);
+        scene.addChild( columnObj );
+
+
+        var sphereGeom = new Omega3D.Geometry.SphereGeometry( 1.0 );
+        var sphereMesh = new Omega3D.Mesh( sphereGeom );
+        var sphereObj  = new Omega3D.Object3D(sphereMesh, wallMat);
+        sphereObj.SetPosition( 5.0, 2.5, 0);
+        scene.addChild( sphereObj );
+    }
+
+
+
+
+
+
+
+    var camAngle = 0;
+    function render(){
+        requestAnimationFrame(render);
+        camAngle = scene.getTime();
+        cam.LookAt(0, 2, 0, [ Math.cos(camAngle * 0.5) * 4,  6 + Math.sin(camAngle) *6, Math.sin(camAngle*0.1) * 6]);
+        renderer.render();
+    }
+
+</script>
+
+
+<body onload="init();" style="padding:0;margin:0;">
+<canvas id="omega" width="900px" height="500px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+</body>
+</html>

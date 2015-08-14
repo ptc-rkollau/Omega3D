@@ -17,16 +17,27 @@ OMEGA.Audio.LoadSounds = function( data, successCallback ){
         data,
         function(b){
             for( var k in b ){
+
                 OMEGA.Audio.sounds[k] = new OMEGA.Audio.Sound(k, b[k]);
+
             }
             OMEGA.Audio.succesCallback();
         }
     );
     loader.load();
 };
+OMEGA.Audio.AttachNode = function( sound_target_id, node ){
+    if(!OMEGA.Audio.sounds[sound_target_id].isCreated) OMEGA.Audio.sounds[sound_target_id].Create();
+    OMEGA.Audio.sounds[sound_target_id].AttachNode( node );
+}
 OMEGA.Audio.PlaySound = function( id, time, panner ){
     var timeValue   = time || 0.0;
-    if( panner )OMEGA.Audio.sounds[id].setPanner(panner);
+
+    if(!OMEGA.Audio.sounds[id].isCreated) OMEGA.Audio.sounds[id].Create();
+    if( panner ){
+        OMEGA.Audio.sounds[id].setPanner(panner);
+        OMEGA.Audio.sounds[id].AttachNode( panner );
+    }
     OMEGA.Audio.sounds[id].setVolume(1.0);
     OMEGA.Audio.sounds[id].play(timeValue);
     return OMEGA.Audio.sounds[id];

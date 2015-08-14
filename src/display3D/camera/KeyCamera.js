@@ -4,9 +4,9 @@ OMEGA.Omega3D.cameras.KeyCamera = function(){
     mat4.identity(this.m);
     this.speed = 0.01;
     this.drag = 0.01;
-    this.pos = new Vector3D(0,0,0);
-    this.vel = new Vector3D(0,0,0);
-    this.acc = new Vector3D(0,0,0);
+    this.pos = new Vector2(0,0,0);
+    this.vel = new Vector2(0,0,0);
+    this.acc = new Vector2(0,0,0);
     this.currentlyPressedKeys = {};
     document.onkeydown = this.HandleKeyDown;
     document.onkeyup   = this.HandleKeyUp;

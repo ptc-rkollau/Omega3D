@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Pointlight demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0014.js"></script>
+
+</head>
+<script type="x-shader/x-vertex" id="vertexshader">
+        uniform vec3 light01Pos;
+        uniform vec3 light02Pos;
+        uniform vec3 light03Pos;
+        uniform vec3 light01Color;
+        uniform vec3 light02Color;
+        uniform vec3 light03Color;
+
+        varying vec2 vTexCoord;
+        varying vec3 vLightWeight;
+
+
+
+        void main(void){
+            vec4 mvPos  = uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
+            vec4 mvLight01  = uViewMatrix * vec4(light01Pos.xyz, 1.0);
+            vec4 mvLight02  = uViewMatrix * vec4(light02Pos.xyz, 1.0);
+            vec4 mvLight03  = uViewMatrix * vec4(light03Pos.xyz, 1.0);
+            gl_Position = uProjectionMatrix * mvPos;
+
+
+
+            vec3 ambientColor = vec3( 0, 0, 0 );
+
+            vTexCoord   = aTextureCoord;
+
+            vec3    tNormal        = uNormalMatrix * aVertexNormal;
+            vec3  light01Dir       = normalize( mvLight01.xyz - mvPos.xyz );
+            vec3  light02Dir       = normalize( mvLight02.xyz - mvPos.xyz );
+            vec3  light03Dir       = normalize( mvLight03.xyz - mvPos.xyz );
+            float dirLight01Weight = max(dot(tNormal, light01Dir), 0.0);
+            float dirLight02Weight = max(dot(tNormal, light02Dir), 0.0);
+            float dirLight03Weight = max(dot(tNormal, light03Dir), 0.0);
+            vec3 light01FinalColor = light01Color * dirLight01Weight;
+            vec3 light02FinalColor = light02Color * dirLight02Weight;
+            vec3 light03FinalColor = light03Color * dirLight03Weight;
+            vLightWeight           = ambientColor + light01FinalColor + light02FinalColor+ light03FinalColor;
+
+        }
+</script>
+<script type="x-shader/x-vertex" id="fragmentshader">
+        varying vec3 vLightWeight;
+        void main(void){
+            vec4 color = vec4(1, 1, 1, 1);
+            gl_FragColor = vec4( vLightWeight * color.rgb, color.a);
+        }
+</script>
+<script type="text/javascript">
+    var images, stencil_scene, stencil_cam;
+    var scene, cam, renderer, chain, mat;
+    var torus, torus_reflection, mask, lights;
+
+    function init( ){
+        //setup scene.
+        lights = [{name:"light01Pos", pos:[-3, 0, 2], color:[1, 0, 0], object:null},
+                  {name:"light02Pos",pos:[ 3, 0, 2], color:[0, 1, 0], object:null},
+                  {name:"light03Pos",pos:[ 0, 0, 3], color:[0, 0, 1], object:null}];
+
+
+        scene = new Omega3D.Scene();
+        cam   = new Omega3D.cameras.Camera();
+        //cam.LookAt( 0, 0, 0, [0, 0, -2]);
+        mat   = new Omega3D.ShaderMaterial({
+            uniforms: {
+                light01Pos:{
+                    type:"vec3",
+                    value:lights[0].pos
+                },
+                light01Color:{
+                    type:"vec3",
+                    value:lights[0].color
+                },
+
+                light02Pos:{
+                    type:"vec3",
+                    value:lights[1].pos
+                },
+                light02Color:{
+                    type:"vec3",
+                    value:lights[1].color
+                },
+                light03Pos:{
+                    type:"vec3",
+                    value:lights[2].pos
+                },
+                light03Color:{
+                    type:"vec3",
+                    value:lights[2].color
+                }
+            },
+            vertex_src:document.getElementById( 'vertexshader' ).textContent,
+            fragment_src:document.getElementById( 'fragmentshader' ).textContent
+        });
+
+        var geom = new Omega3D.Geometry.TorusGeometry(1,0.75, 60, 60);
+        var mesh = new Omega3D.Mesh( geom );
+        torus    = new Omega3D.Object3D( mesh, mat );
+
+        scene.addChild(torus);
+        cam.LookAt( 0, 0, 0, [0, 4, 5]);
+
+        var lightTex = new Omega3D.BasicTexture();
+        var lightGeom = new Omega3D.Geometry.SphereGeometry(0.1, 5, 5);
+        var mesh = new Omega3D.Mesh(lightGeom);
+        for( var key in lights){
+            var lightSha = new Omega3D.Shaders.Basic(false, lights[key].color);
+            var lightMat = new Omega3D.Material(lightSha, [lightTex]);
+            lights[key].object = new Omega3D.Object3D(mesh, lightMat);
+            scene.addChild(lights[key].object);
+        }
+
+        //setup renderer.
+        renderer = new Omega3D.WebGLRenderer();
+        chain    = new Omega3D.RenderChain();
+        chain.AddRenderPass( new RenderPass( renderer, scene, cam ));
+        renderer.SetRenderChain(chain);
+        render();
+
+    }
+
+    function render(){
+        requestAnimationFrame(render);
+        torus.Rotate( 0.015, 0.01, 0.015);
+        var step = Math.PI*2/lights.length;
+        for( var key in lights){
+
+            var pos = lights[key].pos;
+            pos[0] = Math.cos( key * step + scene.getTime()) * 3;
+            pos[2] = Math.sin( key * step + scene.getTime()) * 3;
+            lights[key].pos = pos;
+
+            lights[key].object.SetPosition(pos[0],pos[1],pos[2]);
+            mat.SetValue( lights[key].name, lights[key].pos);
+        }
+        renderer.render();
+    }
+ </script>
+<body onload="init();">
+<canvas id="omega" style="border: none;" width="800" height="500" ></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
+<div style="top:10px;left:600px;color:#fff;position:absolute;">Point light Demo.</div>
+</body>
+</html>

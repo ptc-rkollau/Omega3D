@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Omega3d - Lights demo</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <script language="JavaScript" src="../src/Omega3d.min.v0015.js"></script>
+</head>
+<script type="text/javascript">
+    var images, utils, omega, renderer,chain, scene01, cam01, mat, object, l, l2, l3;
+    function init(){
+        var utils = new OMEGA.Utils();
+        utils.LoadImages(["../../images/misc/rock.jpg"], onLoadDone);
+    }
+    function onLoadDone(imgs){
+        images = imgs;
+
+        //resize canvas.
+        Omega3D.Recalibrate();
+
+        //scene.
+        scene01 = new Omega3D.Scene();
+
+        //lights
+        l  = new Omega3D.Light( Omega3D.POINT_LIGHT );
+        l.SetPosition( 0, 0,10);
+        l.SetDiffuse(1.0, 0.0, 0.0);
+        l.GenerateGLSL();
+        scene01.addLight(l);
+
+        l2  = new Omega3D.Light(Omega3D.POINT_LIGHT);
+        l2.SetPosition( 0, 0, 0);
+        l2.SetDiffuse(0.0, 1.0, 0.0);
+        l2.GenerateGLSL();
+        scene01.addLight(l2);
+
+        l3  = new Omega3D.Light(Omega3D.DIRECTIONAL_LIGHT);
+        l3.SetDirection( 1, 0, 1);
+        l3.SetDiffuse(0.0, 0.0, 1.0);
+        l3.GenerateGLSL();
+        scene01.addLight(l3);
+
+        //camera.
+        cam01  = new Omega3D.cameras.Camera;
+        cam01.SetPosition( 0, 0, -5);
+
+
+        //object.
+        var geom  = new Omega3D.Geometry.SphereGeometry(1.0, 30, 30);
+        var m     = new Omega3D.BasicMaterial([new Omega3D.BasicTexture(images[0])], scene01);
+        object    = new Omega3D.Object3D( new Omega3D.Mesh( geom ), m );
+        scene01.addChild(object);
+
+
+        //render definition.
+        renderer = new Omega3D.WebGLRenderer;
+        chain    = new Omega3D.RenderChain();
+        chain.AddRenderPass( new RenderPass( renderer,scene01,cam01));
+        renderer.SetRenderChain(chain);
+
+
+        //start render.
+        render();
+    }
+    function render(){
+        requestAnimationFrame(render);
+        object.Rotate(0.02, 0.01, 0.01);
+        l.SetPosition(Math.cos(scene01.getTime()/2)* 25, 0, Math.sin(scene01.getTime()/2)* 25);
+        l2.SetPosition(Math.cos(scene01.getTime()/3 + Math.PI)* 25, 0, Math.sin(scene01.getTime()/3+ Math.PI)* 25);
+        renderer.render();
+    }
+
+</script>
+<body onload="init();" style="padding:0;margin:0;">
+<canvas id="omega" width="900px" height="900px"></canvas>
+<a href="http://lab.rackdoll.nl/js/omega/" target="_blank"><img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/></a>
+</body>
+</html>
