@@ -17,13 +17,11 @@ function ParticleEmitter( material){
 
     this.Update = function(gl,camera){
           if(this.sortParticles){
-              this.sort(camera);
               gl.disable(gl.DEPTH_TEST);
               gl.enable(gl.BLEND);
               gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-
+            //this.sort(camera);
           }
-        super.Update(gl,camera);
     };
     this.LateUpdate = function(gl,camera){
         if(this.sortParticles){
@@ -34,7 +32,7 @@ function ParticleEmitter( material){
 
     this.sort = function(camera){
         this.particles.sort(function(a,b){
-            return a[2] - b[2];
+            return a.z - b.z;
         })
     }
 

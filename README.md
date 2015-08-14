@@ -2,7 +2,7 @@
 
 ### What ?  ###
 * Javascript WebGL 3D rendering library.
-* Current stable version: **0.0.1.3 Alpha**
+* Current stable version: **0.0.1.4 Alpha**
 * [Learn more here!](http://lab.rackdoll.nl/js/omega/)
 
 ### Features ###

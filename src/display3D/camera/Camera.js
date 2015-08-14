@@ -1,24 +1,18 @@
 function Camera(){
     Object3D.apply(this);
 
-    this.projectionMatrix = mat4.create();
-    this.laMatrix = mat4.create();
-
-    this.near = 0.1;
-    this.far  = 1000.0;
-
-    this.x = this.y = this.z = 0;
-    this.lookX = this.lookY = this.lookZ = 0;
+    var projectionMatrix = mat4.create();
+    var laMatrix = mat4.create();
 
     this.GetProjectionMatrix = function(){
-        mat4.perspective(this.projectionMatrix,45, OMEGA.Omega3D.GL.viewPortWidth / OMEGA.Omega3D.GL.viewPortHeight,  this.near, this.far );
-        return this.projectionMatrix;
+        mat4.perspective(projectionMatrix, 45, OMEGA.Omega3D.GL.viewPortWidth / OMEGA.Omega3D.GL.viewPortHeight,  0.1, 10000.0 );
+        return projectionMatrix;
     };
     this.GetMatrix    = function(){
         mat4.identity(this.modelView);
         mat4.multiply(this.modelView, this.rMatrix, this.tMatrix);
         mat4.multiply(this.modelView, this.modelView, this.sMatrix);
-        mat4.multiply(this.modelView, this.modelView, this.laMatrix);
+        mat4.multiply(this.modelView, this.modelView, laMatrix);
         return this.modelView;
     };
 
@@ -30,12 +24,11 @@ function Camera(){
         return invViewMatrix;
     };
 
-    this.update = function(){ this.LookAt(this.lookX, this.lookY, this.lookZ, [this.x, this.y, this.z]); };
+    this.update = function(){ };
     this.LookAt = function( x, y, z, position ){
-        this.lookX =x; this.lookY =y;this.lookZ =z;
-        this.x =position[0]; this.y = position[1]; this.z = position[2];
-        mat4.identity(this.laMatrix);
-        mat4.lookAt(this.laMatrix,position || this.position,[this.lookX,this.lookY,this.lookZ],  [0,-1,0]);
+        //if(position) this.position = position;
+        mat4.identity(laMatrix);
+        mat4.lookAt(laMatrix,position || this.position,[x,y,z],  [0,1,0]);
     };
 
 };

@@ -1,14 +1,10 @@
-function ShaderMaterial( data, scene ){
+function ShaderMaterial( data ){
     var fragmentOnlyUniforms = {};
 
     var attribs = {};
     attribs.aTextureCoord = { type: "vec2",glsl: "attribute vec2 aTextureCoord;", value:null};
     attribs.aVertexPos    = { type: "vec3",glsl: "attribute vec3 aVertexPos;"   , value: null};
     attribs.aVertexNormal = { type: "vec3",glsl: "attribute vec3 aVertexNormal;", value:null};
-    attribs.aVertexTangent      = { type: "vec3",glsl: "attribute vec3 aVertexTangent;", value:null};
-    attribs.aVertexBitangent    = { type: "vec3",glsl: "attribute vec3 aVertexBitangent;", value:null};
-    attribs.aBaricentric        = { type: "vec3",glsl: "attribute vec3 aBaricentric;"       , value:null};
-    attribs.aPickingColor       = { type: "vec3",glsl: "attribute vec3 aPickingColor;"      , value:null}
     this.attribs = attribs;
 
     var uniforms = {};
@@ -21,9 +17,7 @@ function ShaderMaterial( data, scene ){
 
 
     var custom_uniforms = {};
-    var custom_attribs = {};
     this.custom_uniforms = custom_uniforms;
-    this.custom_attribs = custom_attribs;
 
     this.Clear = function(){
         for( var key in  custom_uniforms){
@@ -58,30 +52,17 @@ function ShaderMaterial( data, scene ){
                 this.textures.push( data.uniforms[key].value );
             }
         };
-        for( var key in data.attribs){
-            var glsl = "";
-            glsl = "attribute " + data.attribs[key].type + " " + key + ";";
-            custom_attribs[key] = { type: data.attribs[key].type, glsl: glsl, value: data.attribs[key].value };
-        };
     };
 
     var createShader = function(){
-        OMEGA.Omega3D.Log(" >> ShaderMaterial: Creating custom shader");
         var vertex_shader_src = "";
         vertex_shader_src += attachData(attribs );
-        vertex_shader_src += attachData(custom_attribs );
         vertex_shader_src += attachData(uniforms );
         vertex_shader_src += data.vertex_src;
 
         var fragment_shader_src = "precision mediump float;";
         fragment_shader_src += data.fragment_src;
-
-        //var injected = OMEGA.Omega3D.ShaderUtil.InjectGLSLForLights(vertex_shader_src, fragment_shader_src, uniforms, scene);
-        //uniforms = injected.uniforms;
-        //vertex_shader_src =injected.vs;
-        //fragment_shader_src =injected.fs;
-
-        return new OMEGA.Omega3D.Shader( vertex_shader_src, fragment_shader_src, [attribs, uniforms, custom_uniforms, fragmentOnlyUniforms, custom_attribs]);
+        return new OMEGA.Omega3D.Shader( vertex_shader_src, fragment_shader_src, [attribs, uniforms, custom_uniforms, fragmentOnlyUniforms]);
     };
     var attachData = function(  a){
         var out = "";

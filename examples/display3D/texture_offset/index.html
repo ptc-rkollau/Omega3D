@@ -8,26 +8,25 @@
 </head>
 <script type="x-shader/x-vertex" id="lavavertexshader">
         uniform vec2 uOffset;
-        uniform vec3 uLightPos;
         varying vec2 vTexCoord;
         varying vec2 vOffset;
         varying float vDot;
         void main(void){
+            vec3 lightPosition = vec3(0.75, 0,-5);
             vec4 pos = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0);
             vec3 transNormal = uNormalMatrix * aVertexNormal;
 
             gl_Position = pos;
             vTexCoord   = aTextureCoord;
             vOffset     = uOffset;
-            vec3 vLightPos   = vec3(-2.75, 0, -2);
-            vDot = max(dot(transNormal.xyz,vLightPos), 0.075);
+            vDot = max(dot(transNormal.xyz,lightPosition), 0.075);
         }
 </script>
 <script type="x-shader/x-vertex" id="lavafragmentshader">
         uniform sampler2D tex;
         varying vec2 vTexCoord;
         varying vec2 vOffset;
-        varying vec3 vLightPos;
+
         varying float vDot;
         void main(void){
             float strength = 0.1;
@@ -37,7 +36,7 @@
         }
 </script>
 <script type="text/javascript">
-    var images, utils, omega, renderer,chain, scene01, cam01, mat, torus, sphere;
+    var images, utils, omega, renderer,chain, scene01, cam01, mat, torus;
     function init(){
         utils = new OMEGA.Utils;
         utils.LoadImages(["Lava.png"], onLoadDone);
@@ -78,9 +77,6 @@
         torus = new Omega3D.Object3D(new Omega3D.Mesh(torus_geom), mat);
         torus.SetRotation(1.2, 0, 0);
         torus.SetScale(5, 5,5 );
-
-
-
         scene01.addChild(torus);
 
 

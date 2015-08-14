@@ -68,7 +68,6 @@
 
         scene = new Omega3D.Scene();
         cam   = new Omega3D.cameras.Camera();
-        //cam.LookAt( 0, 0, 0, [0, 0, -2]);
         mat   = new Omega3D.ShaderMaterial({
             uniforms: {
                 light01Pos:{
@@ -106,7 +105,7 @@
         torus    = new Omega3D.Object3D( mesh, mat );
 
         scene.addChild(torus);
-        cam.LookAt( 0, 0, 0, [0, 4, 5]);
+        cam.LookAt( 0, 0, 0, [0, 0, 5]);
 
         var lightTex = new Omega3D.BasicTexture();
         var lightGeom = new Omega3D.Geometry.SphereGeometry(0.1, 5, 5);

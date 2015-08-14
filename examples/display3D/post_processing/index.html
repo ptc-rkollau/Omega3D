@@ -2,82 +2,160 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>Omega3d - Basic Low Quality ShadowMapping Demo</title>
-    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
-    <script language="JavaScript" src="../../../src/Omega3d.min.v0015.js"></script>
+    <title>Omega3d - Framebuffer Texture demo</title>
+    <script language="JavaScript" src="../../../src/display3D/math/mat3.js"></script>
+    <!--<script language="JavaScript" src="../src/Omega3d.min.v0013.js"></script>-->
+    <script language="JavaScript" src="../../../src/display3D/math/common.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/mat4.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/math/Vector3D.js"></script>
+    <script language="JavaScript" src="../../../src/utils/Utils.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/Omega3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Object3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/LODObject3D.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cube.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Cylinder.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Light.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Scene.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Sphere.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/display/Torus.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/Camera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/camera/FreeCamera.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/Material.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/MultiMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/ShaderMaterial.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Components.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shader.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/shader/Shaders.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/Texture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/BasicTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/CubemapTexture.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/Mesh.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/Geometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CubeGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/CylinderGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SphereGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/SquareGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TorusGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/mesh/geometry/TriangleGeometry.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/OBJParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/parsers/ColladaParser.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/WebGLRenderer.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/Pass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderPass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderToTexturePass.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/renderer/RenderChain.js"></script>
+    <script language="JavaScript" src="../../../src/display3D/material/texture/FrameBufferTexture.js"></script>
+    <script language="JavaScript" src="../../../src/listeners/KeyListener.js"></script>
 </head>
+<script type="x-shader/x-vertex" id="vertexshader">
+        uniform float uTime;
+        uniform vec2 uResolution;
+        varying vec2 vResolution;
+        varying float vTime;
+        void main(void){
+            vec4 mvPos  = vec4(aVertexPos.xyz, 1.0);
+            gl_Position = mvPos;
+            vResolution = uResolution;
+            vTime = uTime;
+        }
+</script>
+<script type="x-shader/x-vertex" id="fragmentshader">
+        varying vec2 vResolution;
+        varying float vTime;
+
+        float plane( vec3 ro, vec3 rd ){
+            return -ro.y/rd.y;
+        }
+        float intersect( vec3 ro, vec3 rd ){
+            float t = -1.0;
+            float pl = plane( ro, rd );
+            if(pl>0.0){
+                t = pl;
+            }
+            return t;
+        }
+
+        void main(void){
+            vec2 pos    = gl_FragCoord.xy / vResolution.xy;
+
+
+            //ray
+            vec3 ray_origin = vec3( 0.0, 0.5, 3.0);
+            vec3 ray_direction = normalize( vec3( (-1.0 + 2.0 * pos) * vec2(1.78, 1.0), -1.0) );
+            float t = intersect(ray_origin, ray_direction);
+
+            vec3 color = vec3(0.0, 0.0, 0.0 );
+            if( t > 0.5 ){
+                color = vec3(1.0, 0.0, 0.0);
+            }
+
+
+
+            gl_FragColor = vec4( color, 1.0);
+        }
+</script>
 <script type="text/javascript">
-    var scene, camera, light;
-    var postprocessing_scene;
-    var chain, renderer, quad;
-    var geometry, shader, material, texture, mesh;
-    var pp_texture_01,pp_texture_02;
-
-
+    var omega, renderer, scene, cam, light, object, chain, mat;
     function init(){
-        Omega3D.Recalibrate();
-        buildScene();
-        buildFullScreenQuadScene();
-        buildRenderChain();
-        render();
-    }
+        omega  = new Omega3D();
+        cam    = new Omega3D.cameras.Camera;
 
-    function buildScene(){
-        scene = new Omega3D.Scene();
-        camera = new Omega3D.cameras.Camera();
-        camera.LookAt( 0, 0, 0, [ 0, -3, -3]);
 
-        light = new Omega3D.Light( Omega3D.DIRECTIONAL_LIGHT );
-        light.SetDirection( 0, 1, 1);
-        light.SetDiffuse( 1.0, 1.0, 1.0);
-        light.SetAmbient( 0.5, 0.5, 0.5 );
-       // light.GenerateGLSL();
-       // scene.addLight( light );
 
-        var size = 0.5;
-        geometry = new Omega3D.Geometry.CubeGeometry(size, size, size);
-        mesh     = new Omega3D.Mesh( geometry );
-        material = new Omega3D.BasicMaterial([], scene, [1.0, 0.5, 0.1] );
+        //scenes.
+        createMainScene();
 
-        var object = new Omega3D.Object3D(mesh, material);
-        scene.addChild(object);
-    }
 
-    function buildFullScreenQuadScene(){
-        postprocessing_scene = new Omega3D.Scene();
-        geometry       = new Omega3D.Geometry.SquareGeometry(1, 1);
-        mesh           = new Omega3D.Mesh( geometry );
-        shader         = new Omega3D.Shaders.PostProcessing( true, postprocessing_scene );
-        pp_texture_01  = new Omega3D.FrameBufferTexture();
-        pp_texture_02  = new Omega3D.FrameBufferTexture();
-        material       = new Omega3D.Material( shader, [pp_texture_01]);
-        quad            = new Omega3D.Object3D(mesh, material);
-        postprocessing_scene.addChild( quad );
-    }
 
-    function buildRenderChain(){
+        //renderer.
         renderer = new Omega3D.WebGLRenderer();
         chain    = new Omega3D.RenderChain();
-        chain.AddRenderPass( new RenderToTexturePass( renderer, scene, camera, pp_texture_01 ));
-        chain.AddRenderPass( new PostProcessingPass( renderer, quad, new Omega3D.Shaders.PP_Bloom()               , pp_texture_02 ));
-        chain.AddRenderPass( new PostProcessingPass( renderer, quad, new Omega3D.Shaders.PP_ColorMultiply( "2.0" ), pp_texture_01 ));
-        chain.AddRenderPass( new RenderPass( renderer, postprocessing_scene, camera ));
+
+        chain.AddRenderPass( new RenderPass( renderer, scene,cam  ) );
         renderer.SetRenderChain(chain);
+
+        render();
+
     }
+
+    function createMainScene(){
+        scene = new Omega3D.Scene;
+        mat = new Omega3D.ShaderMaterial({
+            uniforms:{
+                uResolution:{
+                    type:"vec2",
+                    value:[800, 600]
+                },
+                uTime:{
+                    type:"float",
+                    value:[0.0]
+                }
+
+            },
+            vertex_src:document.getElementById( 'vertexshader' ).textContent,
+            fragment_src:document.getElementById( 'fragmentshader' ).textContent
+        });
+
+        object = new Omega3D.Object3D(new Omega3D.Mesh(new Omega3D.Geometry.SquareGeometry(1, 1 )), mat);
+        scene.addChild(object);
+
+        cam.SetPosition(0, 0, -3);
+        console.log( object);
+    }
+
+
+
 
     function render(){
         requestAnimationFrame(render);
-        camera.LookAt( 0, 0, 0,[ Math.cos( scene.getTime() / 2.2) * 1.75,
-                                Math.sin( scene.getTime() / 2.4) * 1.57,
-                                Math.sin( scene.getTime() / 1.7) * 1.1]);
+
+        mat.SetValue("uTime", scene.getTime()*2);
         renderer.render();
     }
 
-
 </script>
-<body>
-<body onload="init();" style="padding:0;margin:0;">
-<canvas id="omega" width="900px" height="900px"></canvas>
-<a href="http://lab.rackdoll.nl/js/omega/" target="_blank"><img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/></a>
+<body onload="init();">
+<canvas id="omega" width="800px" height="600px"></canvas>
+<img  src="../../omega.png" style="position:absolute;top:15px;left:15px;width:150px;"/>
 </body>
 </html>

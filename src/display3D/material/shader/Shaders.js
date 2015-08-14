@@ -1,23 +1,19 @@
 OMEGA.Omega3D.Shaders = OMEGA.Omega3D.Shaders || {};
 
-
 /**
- *  Basic - Default shader
+ *  Basic Shader
  *
  * @param isTextured
- * @returns {OMEGA.Omega3D.Shader}
+ * @returns {{vs_src: string, fs_src: string}}
  */
-OMEGA.Omega3D.Shaders.Basic = function( isTextured, scene, color ){
-    //OMEGA.Omega3D.Log(" >> ShaderBuilder: Creating 'Basic' shader");
-    //OMEGA.Omega3D.Log("   -- Textured: " + isTextured);
-    //OMEGA.Omega3D.Log("   -- Color: " + color);
+OMEGA.Omega3D.Shaders.Basic = function( isTextured, color ){
     var texture, fragmentColor;
     isTextured = isTextured || false;
     if(isTextured) texture = "varying vec2 vTexCoord;";
     else texture = "";
     var vertex_source = OMEGA.Omega3D.Shaders.Components.Basic_Includes();
         vertex_source = vertex_source + texture;
-        vertex_source = vertex_source + "void main(void){";
+        vertex_source = vertex_source + "void main(void){gl_PointSize = uPointSize;";
         vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Vertex_World_Conversion_V3("gl_Position", "aVertexPos");
         if(isTextured                      ) vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Basic_TextureCoords("vTexCoord");
         vertex_source = vertex_source + "}";
@@ -33,415 +29,18 @@ OMEGA.Omega3D.Shaders.Basic = function( isTextured, scene, color ){
         else  fragmentColor = "vec4(0.8,0.4,0.0, 1.0);";
     }
     var fragment_source = OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
-    fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes();
-        if( isTextured                     ){
-            fragment_source = fragment_source + texture;
-        }
+        if( isTextured                     ) fragment_source = fragment_source + texture;
         fragment_source = fragment_source + "void main(void){";
-        fragment_source = fragment_source + "vec4 color = " + fragmentColor;
-        fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic("vec4(color.rgb, color.a)");
+        fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic(fragmentColor);
         fragment_source = fragment_source + "}";
-
-
-
-    //lights
-    var uniforms = OMEGA.Omega3D.Shaders.Components.StandardUniforms();
-    if(scene != null){
-        var injected = OMEGA.Omega3D.ShaderUtil.InjectGLSLForLights(vertex_source, fragment_source, uniforms, scene);
-        uniforms = injected.uniforms;
-        vertex_source =injected.vs;
-        fragment_source =injected.fs;
-
-        //fog
-        if(scene.hasFog){
-            injected = OMEGA.Omega3D.ShaderUtil.InjectGLSLForFog(vertex_source, fragment_source, uniforms,scene);
-            uniforms = injected.uniforms;
-            vertex_source =injected.vs;
-            fragment_source =injected.fs;
-        }
-    }
-
-
 
     var fragmentOnlyUniforms = {};
     if(isTextured) fragmentOnlyUniforms["uSampler"] = { id:"uSampler", type: "sampler2D", glsl: "", value: null };
     return new OMEGA.Omega3D.Shader(vertex_source,fragment_source,  [OMEGA.Omega3D.Shaders.Components.StandardAttributes(),
-                                                                     uniforms,
+                                                                     OMEGA.Omega3D.Shaders.Components.StandardUniforms(),
                                                                      {},
                                                                      fragmentOnlyUniforms]);
 };
-
-/**
- * SEM - Spherical Environment Mapping
- *
- * @param scene
- * @returns {OMEGA.Omega3D.Shader}
- * @constructor
- */
-OMEGA.Omega3D.Shaders.SEM = function( scene ){
-   // OMEGA.Omega3D.Log(" >> ShaderBuilder: Creating 'Spherical Environment Mapping' shader");
-
-    var vertex_source = OMEGA.Omega3D.Shaders.Components.Basic_Includes();
-    vertex_source += "varying vec3 e;";
-    vertex_source += "varying vec3 n;";
-    vertex_source += "void main(void){";
-    vertex_source += "e = normalize( vec3( uViewMatrix * uModelMatrix * vec4(aVertexPos.xyz, 1.0) ) );";
-    vertex_source += "n = normalize( uNormalMatrix * aVertexNormal );";
-    vertex_source += OMEGA.Omega3D.Shaders.Components.Vertex_World_Conversion_V3("gl_Position", "aVertexPos");
-    vertex_source += "}";
-
-
-
-
-
-    var fragment_source = OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
-    fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes();
-    fragment_source += "uniform sampler2D uSampler;";
-    fragment_source += "varying vec3 e;";
-    fragment_source += "varying vec3 n;";
-    fragment_source += "void main(void){";
-    fragment_source += "vec3 r = reflect( e, n );";
-    fragment_source += "float m = 2.0 * sqrt( pow( r.x, 2.0) + pow( r.y, 2.0) + pow( r.z + 1.0, 2.0) );";
-    fragment_source += "vec2 vN = r.xy / m + 0.5;";
-    fragment_source += "vec4 color = texture2D(uSampler, vN);";
-    fragment_source += OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic("vec4(color.rgb, color.a)");
-    fragment_source += "}";
-
-
-    var uniforms = OMEGA.Omega3D.Shaders.Components.StandardUniforms();
-    var injected = OMEGA.Omega3D.ShaderUtil.InjectGLSLForLights(vertex_source, fragment_source, uniforms, scene);
-    uniforms = injected.uniforms;
-    vertex_source =injected.vs;
-    fragment_source =injected.fs;
-
-    var fragmentOnlyUniforms = {};
-    fragmentOnlyUniforms["uSampler"] = { id:"uSampler", type: "sampler2D", glsl: "", value: null };
-    return new OMEGA.Omega3D.Shader(vertex_source,fragment_source,  [OMEGA.Omega3D.Shaders.Components.StandardAttributes(),
-        uniforms,
-        {},
-        fragmentOnlyUniforms]);
-};
-
-
-
-/**
- * SM - Shadow Mapping
- *
- * @param scene
- * @returns {OMEGA.Omega3D.Shader}
- * @constructor
- */
-OMEGA.Omega3D.Shaders.SM = function( scene  ){
-   // OMEGA.Omega3D.Log(" >> ShaderBuilder: Creating 'Shadow Mapping' shader");
-
-    var vertex_source = OMEGA.Omega3D.Shaders.Components.Basic_Includes();
-    vertex_source += "uniform mat4 uLightM;";
-    vertex_source += "varying vec2 vTexCoord;";
-    vertex_source += "varying vec4 vertexPosLight;";
-
-    vertex_source += "void main(void){";
-    vertex_source += "mat4 mvp       = uProjectionMatrix * uViewMatrix * uModelMatrix;";
-    vertex_source += "mat4 mvp_light = uProjectionMatrix * uLightM * uModelMatrix;";
-    vertex_source += "vec4 pos       = mvp * vec4(aVertexPos.xyz, 1.0);";
-    vertex_source += "vertexPosLight = mvp_light * vec4(aVertexPos.xyz, 1.0);";
-    vertex_source += "gl_Position    = pos;";
-    vertex_source += "vTexCoord      = aTextureCoord;";
-    vertex_source += "}";
-
-
-    var fragment_source = OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
-    fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes();
-    fragment_source += "uniform sampler2D uSampler;";
-    fragment_source += "uniform sampler2D uShadowMap;";
-    fragment_source += "varying vec2 vTexCoord;";
-    fragment_source += "varying vec4 vertexPosLight;";
-
-    fragment_source += "void main(void){";
-    fragment_source += "vec3 nLightPos   = (vertexPosLight.xyz / vertexPosLight.w) / 2.0 + 0.5;";
-    fragment_source += "vec4 depth       = texture2D(uShadowMap, vec2(nLightPos.xy));";
-    fragment_source += "vec4 texture     = texture2D(uSampler, vec2(vTexCoord.st));";
-    fragment_source += "float visibility = (nLightPos.z > (depth.r + 0.0001)) ? 0.7 : 1.0;";
-    fragment_source += "vec4 color       = vec4( texture.rgb*visibility, 1.0);";
-    fragment_source += OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic("vec4(color.rgb, color.a)");
-    fragment_source += "}";
-
-
-    var uniforms = OMEGA.Omega3D.Shaders.Components.StandardUniforms();
-    var injected = OMEGA.Omega3D.ShaderUtil.InjectGLSLForLights(vertex_source, fragment_source, uniforms, scene);
-    uniforms = injected.uniforms;
-    vertex_source =injected.vs;
-    fragment_source =injected.fs;
-
-    var fragmentOnlyUniforms = {};
-    fragmentOnlyUniforms["uSampler"]   = { id:"uSampler"  , type: "sampler2D", glsl: "", value: null };
-    fragmentOnlyUniforms["uShadowMap"] = { id:"uShadowMap", type: "sampler2D", glsl: "", value: null };
-
-    var custom_uniforms = {};
-    custom_uniforms["uLightM"] = { type:"mat4", glsl: "", value: "" };
-    return new OMEGA.Omega3D.Shader(vertex_source,fragment_source,  [OMEGA.Omega3D.Shaders.Components.StandardAttributes(),
-                                                                    uniforms,
-                                                                    custom_uniforms,
-                                                                    fragmentOnlyUniforms]);
-};
-
-OMEGA.Omega3D.Shaders.ColorPicking = function(){
-   // OMEGA.Omega3D.Log(" >> ShaderBuilder: Creating 'ColorPicking' shader");
-
-    var vertex_source = OMEGA.Omega3D.Shaders.Components.Basic_Includes();
-    vertex_source = vertex_source + "varying vec3 vPickingColor;";
-    vertex_source = vertex_source + "void main(void){";
-    vertex_source = vertex_source + "vPickingColor = aPickingColor;";
-    vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Vertex_World_Conversion_V3("gl_Position", "aVertexPos");
-    vertex_source = vertex_source + "}";
-
-    var fragment_source = OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
-    fragment_source = fragment_source + "varying vec3 vPickingColor;";
-    fragment_source = fragment_source + "void main(void){";
-    fragment_source = fragment_source + "vec4 color = vec4(vPickingColor.r,0, 0, 1.0);";
-    fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic("vec4(color.rgb, color.a)");
-    fragment_source = fragment_source + "}";
-
-    var uniforms = OMEGA.Omega3D.Shaders.Components.StandardUniforms();
-    var fragmentOnlyUniforms = {};
-
-    return new OMEGA.Omega3D.Shader(vertex_source,fragment_source,  [OMEGA.Omega3D.Shaders.Components.StandardAttributes(),
-        uniforms,
-        {},
-        fragmentOnlyUniforms]);
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-//===================================================================================
-// PostProcessing
-//===================================================================================
-
-OMEGA.Omega3D.Shaders.PostProcessing = function( isTextured, scene, color ){
-    //OMEGA.Omega3D.Log(" >> ShaderBuilder: Creating 'Basic PostProcessing' shader");
-    //OMEGA.Omega3D.Log("   -- Textured: " + isTextured);
-    //OMEGA.Omega3D.Log("   -- Color: " + color);
-    var texture, fragmentColor;
-    isTextured = isTextured || false;
-    if(isTextured) texture = "varying vec2 vTexCoord;";
-    else texture = "";
-    var vertex_source = OMEGA.Omega3D.Shaders.Components.Basic_Includes();
-    vertex_source = vertex_source + texture;
-    vertex_source = vertex_source + "void main(void){";
-    vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Vertex_ScreenSpace_Conversion_V3("gl_Position", "aVertexPos");
-    if(isTextured                      ) vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Basic_TextureCoords("vTexCoord");
-    vertex_source = vertex_source + "}";
-
-
-    if(isTextured){
-        texture = "uniform sampler2D uSampler;"+
-        "varying vec2 vTexCoord;";
-        fragmentColor = "texture2D(uSampler, vec2(vTexCoord.s, vTexCoord.t));";
-    }
-    else{
-        if(color) fragmentColor = "vec4("+color[0]+","+ +color[1]+"," +  +color[2]+", 1.0);";
-        else  fragmentColor = "vec4(0.8,0.4,0.0, 1.0);";
-    }
-    var fragment_source = OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
-    if( isTextured                     ){
-        fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes();
-        fragment_source = fragment_source + texture;
-    }
-    fragment_source = fragment_source + "void main(void){";
-    fragment_source = fragment_source + "vec4 color = "+fragmentColor;
-    fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic("vec4(color.rgb, color.a)");
-    fragment_source = fragment_source + "}";
-
-
-    var uniforms = OMEGA.Omega3D.Shaders.Components.StandardUniforms();
-
-    var fragmentOnlyUniforms = {};
-    if(isTextured) fragmentOnlyUniforms["uSampler"] = { id:"uSampler", type: "sampler2D", glsl: "", value: null };
-    return new OMEGA.Omega3D.Shader(vertex_source,fragment_source,  [OMEGA.Omega3D.Shaders.Components.StandardAttributes(),
-        uniforms,
-        {},
-        fragmentOnlyUniforms]);
-};
-
-
-OMEGA.Omega3D.Shaders.PP_ColorMultiply = function(val){
-    //OMEGA.Omega3D.Log(" >> ShaderBuilder: Creating 'Basic PostProcessing' shader");
-    var texture, fragmentColor;
-
-    texture = "varying vec2 vTexCoord;";
-    var vertex_source = OMEGA.Omega3D.Shaders.Components.Basic_Includes();
-    vertex_source = vertex_source + texture;
-    vertex_source = vertex_source + "void main(void){";
-    vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Vertex_ScreenSpace_Conversion_V3("gl_Position", "aVertexPos");
-    vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Basic_TextureCoords("vTexCoord");
-    vertex_source = vertex_source + "}";
-
-
-
-   texture = "uniform sampler2D uSampler;"+
-             "varying vec2 vTexCoord;";
-
-
-    var fragment_source = OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
-    fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes();
-    fragment_source = fragment_source + texture;
-    fragment_source = fragment_source + "void main(void){";
-    fragment_source = fragment_source + "vec4 color = texture2D(uSampler, vec2(vTexCoord.s, vTexCoord.t));";
-    fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic("vec4(color.rgb*"+val+", color.a)");
-    fragment_source = fragment_source + "}";
-
-
-    var uniforms = OMEGA.Omega3D.Shaders.Components.StandardUniforms();
-
-    var fragmentOnlyUniforms = {};
-    fragmentOnlyUniforms["uSampler"] = { id:"uSampler", type: "sampler2D", glsl: "", value: null };
-    return new OMEGA.Omega3D.Shader(vertex_source,fragment_source,  [OMEGA.Omega3D.Shaders.Components.StandardAttributes(),
-        uniforms,
-        {},
-        fragmentOnlyUniforms]);
-};
-OMEGA.Omega3D.Shaders.PP_Blur = function(amount){
-   // OMEGA.Omega3D.Log(" >> ShaderBuilder: Creating 'Basic PostProcessing' shader");
-    var texture, fragmentColor;
-
-    texture = "varying vec2 vTexCoord;";
-    var vertex_source = OMEGA.Omega3D.Shaders.Components.Basic_Includes();
-    vertex_source = vertex_source + texture;
-    vertex_source = vertex_source + "void main(void){";
-    vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Vertex_ScreenSpace_Conversion_V3("gl_Position", "aVertexPos");
-    vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Basic_TextureCoords("vTexCoord");
-    vertex_source = vertex_source + "}";
-
-
-
-    texture = "uniform sampler2D uSampler;"+
-    "varying vec2 vTexCoord;";
-
-
-    var fragment_source = OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
-    fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes();
-    fragment_source = fragment_source + texture;
-    fragment_source = fragment_source + "void main(void){";
-    fragment_source = fragment_source + "vec4 sum = vec4(0.0);";
-    fragment_source = fragment_source + "vec2 tc = vTexCoord;";
-    fragment_source = fragment_source + "float radius ="+amount+";";
-    fragment_source = fragment_source + "float resolution = 1024.0;";
-    fragment_source = fragment_source + "float blur = radius / resolution;";
-    fragment_source = fragment_source + "float hstep = 0.5;";
-    fragment_source = fragment_source + "float vstep = 0.5;";
-
-    fragment_source = fragment_source + "sum += texture2D(uSampler, vec2(tc.x - 4.0*blur*hstep, tc.y - 4.0*blur*vstep)) * 0.0162162162;";
-    fragment_source = fragment_source + "sum += texture2D(uSampler, vec2(tc.x - 3.0*blur*hstep, tc.y - 3.0*blur*vstep)) * 0.0540540541;";
-    fragment_source = fragment_source + "sum += texture2D(uSampler, vec2(tc.x - 2.0*blur*hstep, tc.y - 2.0*blur*vstep)) * 0.1216216216;";
-    fragment_source = fragment_source + "sum += texture2D(uSampler, vec2(tc.x - 1.0*blur*hstep, tc.y - 1.0*blur*vstep)) * 0.1945945946;";
-
-    fragment_source = fragment_source + "sum += texture2D(uSampler, vec2(tc.x, tc.y)) * 0.2270270270;";
-
-    fragment_source = fragment_source + "sum += texture2D(uSampler, vec2(tc.x + 1.0*blur*hstep, tc.y + 1.0*blur*vstep)) * 0.1945945946;";
-    fragment_source = fragment_source + "sum += texture2D(uSampler, vec2(tc.x + 2.0*blur*hstep, tc.y + 2.0*blur*vstep)) * 0.1216216216;";
-    fragment_source = fragment_source + "sum += texture2D(uSampler, vec2(tc.x + 3.0*blur*hstep, tc.y + 3.0*blur*vstep)) * 0.0540540541;";
-    fragment_source = fragment_source + "sum += texture2D(uSampler, vec2(tc.x + 4.0*blur*hstep, tc.y + 4.0*blur*vstep)) * 0.0162162162;";
-
-
-
-
-
-
-
-    fragment_source = fragment_source + "vec4 color = texture2D(uSampler, vec2(vTexCoord.s, vTexCoord.t));";
-    fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic("vec4(color.rgb * sum.rgb, color.a)");
-    fragment_source = fragment_source + "}";
-
-
-    var uniforms = OMEGA.Omega3D.Shaders.Components.StandardUniforms();
-
-    var fragmentOnlyUniforms = {};
-    fragmentOnlyUniforms["uSampler"] = { id:"uSampler", type: "sampler2D", glsl: "", value: null };
-    return new OMEGA.Omega3D.Shader(vertex_source,fragment_source,  [OMEGA.Omega3D.Shaders.Components.StandardAttributes(),
-        uniforms,
-        {},
-        fragmentOnlyUniforms]);
-};
-OMEGA.Omega3D.Shaders.PP_Bloom = function(amount){
-    //OMEGA.Omega3D.Log(" >> ShaderBuilder: Creating 'Basic PostProcessing' shader");
-    var texture, fragmentColor;
-
-    texture = "varying vec2 vTexCoord;";
-    var vertex_source = OMEGA.Omega3D.Shaders.Components.Basic_Includes();
-    vertex_source = vertex_source + texture;
-    vertex_source = vertex_source + "void main(void){";
-    vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Vertex_ScreenSpace_Conversion_V3("gl_Position", "aVertexPos");
-    vertex_source = vertex_source + OMEGA.Omega3D.Shaders.Components.Basic_TextureCoords("vTexCoord");
-    vertex_source = vertex_source + "}";
-
-
-
-    texture = "uniform sampler2D uSampler;"+
-    "varying vec2 vTexCoord;";
-
-
-    amount = amount == null ? "3" : amount;
-    var fragment_source = OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
-    fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes();
-    fragment_source = fragment_source + texture;
-    fragment_source = fragment_source + "void main(void){";
-    fragment_source = fragment_source + "vec4 sum = vec4(0.0);";
-    fragment_source = fragment_source + "vec2 tc = vTexCoord;";
-    fragment_source = fragment_source + "int amount = 5;";
-    fragment_source = fragment_source + "for( int i= -"+amount+" ;i < "+amount+"; i++){";
-        fragment_source = fragment_source + "for ( int j = -"+amount+"; j < "+amount+"; j++){";
-            fragment_source = fragment_source + "sum += texture2D(uSampler, tc + vec2(j, i)*0.004) * 0.25;";
-        fragment_source = fragment_source + "}";
-    fragment_source = fragment_source + "}";
-    fragment_source = fragment_source + "if (texture2D(uSampler, tc).r < 0.3){";
-    fragment_source = fragment_source + "gl_FragColor = sum*sum*0.012 + texture2D(uSampler, tc);";
-    fragment_source = fragment_source + "}else{";
-
-    fragment_source = fragment_source + "if (texture2D(uSampler, tc).r < 0.5){";
-
-    fragment_source = fragment_source + "gl_FragColor = sum*sum*0.009 + texture2D(uSampler, tc);";
-    fragment_source = fragment_source + "}else{";
-    fragment_source = fragment_source + "gl_FragColor = sum*sum*0.0075 + texture2D(uSampler, tc);";
-    fragment_source = fragment_source + "}}}";
-
-
-
-    var uniforms = OMEGA.Omega3D.Shaders.Components.StandardUniforms();
-
-    var fragmentOnlyUniforms = {};
-    fragmentOnlyUniforms["uSampler"] = { id:"uSampler", type: "sampler2D", glsl: "", value: null };
-    return new OMEGA.Omega3D.Shader(vertex_source,fragment_source,  [OMEGA.Omega3D.Shaders.Components.StandardAttributes(),
-        uniforms,
-        {},
-        fragmentOnlyUniforms]);
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//Deprecated
-//TODO: static lights
 OMEGA.Omega3D.Shaders.Diffuse = function( isTextured ){
     var texture, fragmentColor;
     isTextured = isTextured || false;
@@ -467,10 +66,7 @@ OMEGA.Omega3D.Shaders.Diffuse = function( isTextured ){
     }
     var fragment_source = OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
     if(OMEGA.Omega3D.LIGHTS.length > 0 ) fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Light_Includes() + OMEGA.Omega3D.Shaders.Components.Basic_Light_Varying();
-    if( isTextured                     ){
-        fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes();
-        fragment_source = fragment_source + texture;
-    }
+    if( isTextured                     ) fragment_source = fragment_source + texture;
     fragment_source = fragment_source + "void main(void){";
     if(OMEGA.Omega3D.LIGHTS.length > 0 ) fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Diffuse_Fragment_Logic(fragmentColor);
     else                                 fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic(fragmentColor);
@@ -483,9 +79,6 @@ OMEGA.Omega3D.Shaders.Diffuse = function( isTextured ){
                                                                      OMEGA.Omega3D.Shaders.Components.StandardLightUniforms(),
                                                                      fragmentOnlyUniforms]);
 };
-//Deprecated
-//TODO: static lights
-
 OMEGA.Omega3D.Shaders.Phong = function( isTextured ){
     var texture, fragmentColor;
     isTextured = isTextured || false;
@@ -511,10 +104,7 @@ OMEGA.Omega3D.Shaders.Phong = function( isTextured ){
     }
     var fragment_source = OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
     if(OMEGA.Omega3D.LIGHTS.length > 0 ) fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Light_Includes() + OMEGA.Omega3D.Shaders.Components.Basic_Light_Varying();
-    if( isTextured                     ){
-        fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes();
-        fragment_source = fragment_source + texture;
-    }
+    if( isTextured                     ) fragment_source = fragment_source + texture;
     fragment_source = fragment_source + "void main(void){";
     if(OMEGA.Omega3D.LIGHTS.length > 0 ) fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Phong_Fragment_Logic(fragmentColor);
     else                                 fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic(fragmentColor);
@@ -535,7 +125,7 @@ OMEGA.Omega3D.Shaders.Phong = function( isTextured ){
  *
  * @returns {{vs_src: string, fs_src: string}}
  */
-OMEGA.Omega3D.Shaders.CubeMap = function(scene){
+OMEGA.Omega3D.Shaders.CubeMap = function(){
     var vertex_source =
         OMEGA.Omega3D.Shaders.Components.Basic_Includes() +
         "varying vec3 vTexCoord;"+
@@ -547,25 +137,16 @@ OMEGA.Omega3D.Shaders.CubeMap = function(scene){
 
     var fragment_source =
         OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float()+
-        OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes() +
         "uniform samplerCube uSampler;"+
         "varying vec3 vTexCoord;"+
         "void main(void){"+
              "gl_FragColor = textureCube(uSampler, vTexCoord);"+
         "}";
 
-
-    var uniforms = OMEGA.Omega3D.Shaders.Components.StandardUniforms();
-    //var injected = OMEGA.Omega3D.ShaderUtil.InjectGLSLForLights(vertex_source, fragment_source, uniforms, scene);
-    //uniforms = injected.uniforms;
-    //vertex_source =injected.vs;
-    //fragment_source =injected.fs;
-
-
     var fragmentOnlyUniforms = {};
     fragmentOnlyUniforms["uSampler"] = { id:"uSampler", type: "sampler2D", glsl: "", value: null };
     return new OMEGA.Omega3D.Shader(vertex_source,fragment_source,  [OMEGA.Omega3D.Shaders.Components.StandardAttributes(),
-                                                                     uniforms,
+                                                                     OMEGA.Omega3D.Shaders.Components.StandardUniforms(),
                                                                      {},
                                                                      fragmentOnlyUniforms]);
 };
@@ -576,7 +157,7 @@ OMEGA.Omega3D.Shaders.CubeMap = function(scene){
  * @returns {OMEGA.Omega3D.Shader}
  * @constructor
  */
-/*OMEGA.Omega3D.Shaders.PostProcessing = function( ){
+OMEGA.Omega3D.Shaders.PostProcessing = function( ){
     var vertex_source =
         OMEGA.Omega3D.Shaders.Components.Basic_Includes_Post_Processing() +
         "varying float vTime;" +
@@ -617,7 +198,7 @@ OMEGA.Omega3D.Shaders.CubeMap = function(scene){
         OMEGA.Omega3D.Shaders.Components.StandardUniforms(),
         {},
         fragmentOnlyUniforms]);
-};*/
+};
 
 OMEGA.Omega3D.Shaders.Morph = function( ){
     var vertex_source =
@@ -658,8 +239,7 @@ OMEGA.Omega3D.Shaders.Morph = function( ){
 
 
     var fragment_source =
-        OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float() +
-        OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes();
+        OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float();
         if(OMEGA.Omega3D.LIGHTS.length > 0 ) fragment_source = fragment_source + OMEGA.Omega3D.Shaders.Components.Basic_Light_Includes() + OMEGA.Omega3D.Shaders.Components.Basic_Light_Varying();
         fragment_source = fragment_source +
         "uniform sampler2D uSampler;"+
@@ -712,7 +292,6 @@ OMEGA.Omega3D.Shaders.CubemapReflection = function( ) {
         "}";
     var fragment_source =
         OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float() +
-        OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes() +
         "varying vec3 vTexCoord;" +
         "uniform samplerCube uSampler;"+
         "void main(void){"+
@@ -746,7 +325,6 @@ OMEGA.Omega3D.Shaders.PostProcessingKernel = function( kernel ){
 
     var fragment_source =
         OMEGA.Omega3D.Shaders.Components.Fragment_Precision_Mediump_Float()+
-        OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes() +
         "uniform float uKernel[9];" +
         "uniform sampler2D uSampler;"+
         "varying vec2 vTexCoord;"+

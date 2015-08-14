@@ -14,26 +14,15 @@ OMEGA.Omega3D.Shaders.Components.Basic_Includes = function(){
         "attribute vec2 aTextureCoord;"+
         "attribute vec3 aVertexPos;"+
         "attribute vec3 aVertexNormal;"+
-        "attribute vec3 aBaricentric;"+
-        "attribute vec3 aPickingColor;"+
 
-        //"uniform float uPointSize;"+
-        //"uniform vec3 uDiffuse;"+
-        //"uniform vec3 uAmbient;"+
-        //"uniform vec3 uSpecular;"+
+
+        "uniform float uPointSize;"+
 
         "uniform mat4 uModelMatrix;"+
         "uniform mat4 uProjectionMatrix;"+
         "uniform mat4 uViewMatrix;"+
-       // "uniform mat4 uInvViewMatrix;"+
+        "uniform mat4 uInvViewMatrix;"+
         "uniform mat3 uNormalMatrix;";
-    return script;
-};
-OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Includes = function(){
-    var script =
-        "uniform vec3 uDiffuse;"+
-        "uniform vec3 uAmbient;"+
-        "uniform vec3 uSpecular;";
     return script;
 };
 OMEGA.Omega3D.Shaders.Components.Basic_Includes_Post_Processing = function(){
@@ -52,18 +41,9 @@ OMEGA.Omega3D.Shaders.Components.Basic_Includes_Post_Processing = function(){
 OMEGA.Omega3D.Shaders.Components.Vertex_World_Conversion_V3 = function( target, subject ){
     return target + " = uProjectionMatrix * uViewMatrix * uModelMatrix *    vec4("+subject+", 1.0);";
 };
-
-//TODO: check if this is obsolete!
 OMEGA.Omega3D.Shaders.Components.Vertex_View_Conversion_V3 = function( target, subject ){
     return target + " = uProjectionMatrix * uViewMatrix * uModelMatrix *    vec4("+subject+", 1.0);";
 };
-
-OMEGA.Omega3D.Shaders.Components.Vertex_ScreenSpace_Conversion_V3 = function( target, subject ){
-    return target + " = vec4("+subject+", 1.0);"
-}
-
-
-
 OMEGA.Omega3D.Shaders.Components.Basic_Fragment_Logic = function( color ){
     return "gl_FragColor = " + color + ";";
 };
@@ -237,35 +217,27 @@ OMEGA.Omega3D.Shaders.Components.Basic_Phong_Fragment_Logic = function( color ){
 OMEGA.Omega3D.Shaders.Components.StandardAttributes = function(){
     var attribs = {};
     attribs.aTextureCoord = { type: "vec2",glsl: "attribute vec2 aTextureCoord;", value:null};
-    attribs.aVertexPos    = { type: "vec3",glsl: "attribute vec3 aVertexPos;"   , value:null};
+    attribs.aVertexPos    = { type: "vec3",glsl: "attribute vec3 aVertexPos;"   , value: null};
     attribs.aVertexNormal = { type: "vec3",glsl: "attribute vec3 aVertexNormal;", value:null};
-    attribs.aVertexTangent      = { type: "vec3",glsl: "attribute vec3 aVertexTangent;"     , value:null};
-    attribs.aVertexBitangent    = { type: "vec3",glsl: "attribute vec3 aVertexBitangent;"   , value:null};
-    attribs.aBaricentric        = { type: "vec3",glsl: "attribute vec3 aBaricentric;"       , value:null};
-    attribs.aPickingColor       = { type: "vec3",glsl: "attribute vec3 aPickingColor;"      , value:null};
     return attribs;
 };
 OMEGA.Omega3D.Shaders.Components.StandardUniforms = function(){
     var uniforms = {};
-    uniforms.uDiffuse      = { type: "vec3", glsl: "uniform mat4 uDiffuse;"     , value: null };
-    uniforms.uAmbient      = { type: "vec3", glsl: "uniform mat4 uAmbient;"     , value: null };
-    uniforms.uSpecular      = { type: "vec3", glsl: "uniform mat4 uSpecular;"     , value: null };
-
     uniforms.uModelMatrix      = { type: "mat4", glsl: "uniform mat4 uModelMatrix;"     , value: null };
     uniforms.uProjectionMatrix = { type: "mat4", glsl: "uniform mat4 uProjectionMatrix;", value: null };
     uniforms.uViewMatrix       = { type: "mat4", glsl: "uniform mat4 uViewMatrix;"      , value: null };
-   // uniforms.uInvViewMatrix    = { type: "mat4", glsl: "uniform mat4 uInvViewMatrix;"   , value: null };
+    uniforms.uInvViewMatrix    = { type: "mat4", glsl: "uniform mat4 uInvViewMatrix;"   , value: null };
     uniforms.uNormalMatrix     = { type: "mat4", glsl: "uniform mat4 uNormalMatrix;"    , value: null };
-    //uniforms.uPointSize        = { type: "float", glsl: "uniform float uPointSize;"    , value: null };
+    uniforms.uPointSize        = { type: "float", glsl: "uniform float uPointSize;"    , value: null };
     return uniforms;
 };
 OMEGA.Omega3D.Shaders.Components.StandardLightUniforms = function(){
     var uniforms = {};
     uniforms.uLightPosition  = { type: "vec3", glsl: "uniform vec3 uLightPosition;" , value: null };
     uniforms.uLightDirection = { type: "vec3", glsl: "uniform vec3 uLightDirection;", value: null };
-//    uniforms.uAmbientColor   = { type: "vec3", glsl: "uniform vec3 uAmbientColor;"  , value: null };
-   // uniforms.uDiffuseColor   = { type: "vec3", glsl: "uniform vec3 uDiffuseColor;"  , value: null };
-   // uniforms.uSpecularColor  = { type: "vec3", glsl: "uniform vec3 uSpecularColor;" , value: null };
+    uniforms.uAmbientColor   = { type: "vec3", glsl: "uniform vec3 uAmbientColor;"  , value: null };
+    uniforms.uDiffuseColor   = { type: "vec3", glsl: "uniform vec3 uDiffuseColor;"  , value: null };
+    uniforms.uSpecularColor  = { type: "vec3", glsl: "uniform vec3 uSpecularColor;" , value: null };
     return uniforms;
 };
 

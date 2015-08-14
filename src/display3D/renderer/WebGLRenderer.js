@@ -78,7 +78,7 @@ function WebGLRenderer( debugRender ){
 
 
     this.render = function(){
-        if(OMEGA.Omega3D.AVAILABLE)renderChain.Render();
+        renderChain.Render();
     };
 
     this.renderSceneToStencil = function(scene, camera){
@@ -92,26 +92,143 @@ function WebGLRenderer( debugRender ){
         gl.enable( gl.STENCIL_TEST );
 
         var color = scene.getColor();
+
+
+
+
         gl.disable( gl.STENCIL_TEST );
     };
 
-    this.RenderPostProcessing = function( scene, camera ){
-
-
-    }
-
     this.renderScene = function( scene, camera ){
         if(debug) console.log("Renderer.Render START");
-        this.clear(scene.getColor());
-        scene.getGL().clearDepth(1.0);
+        if(this.autoClear) this.clear(scene.getColor());
+        var gl = scene.getGL();
+        this.materials = scene.materials;
+        this.objects   = scene.objects;
+        this.list      = scene.list;
 
-        for(var i = 0; i < scene.children.length; i++){
-            scene.children[i].Render(scene, camera );
+        for( var i = 0; i < this.materials.length; i++){
+            var id  = this.materials[i].id;
+            var mat = this.materials[i].material;
+
+            if(!this.objects[id]) continue;
+            if(debug){
+                 console.log( "Current Material ID :  " + id
+                            + "\nAmount Objects for this material: " + this.objects[id].length );
+            }
+
+            var t = mat.GetTextures(); var l = t.length;
+            for( var j = 0; j < l; j++) if(t[j].needsUpdate)t[j].Update();
+            mat.Enable();
+
+            if(mat.GetShader().GetProgram().uProjectionMatrix) gl.uniformMatrix4fv( mat.GetShader().GetProgram().uProjectionMatrix, false, camera.GetProjectionMatrix() );
+            if(mat.GetShader().GetProgram().uViewMatrix      ) gl.uniformMatrix4fv( mat.GetShader().GetProgram().uViewMatrix   , false,  camera.GetMatrix() );
+            if(mat.GetShader().GetProgram().uInvViewMatrix   ) gl.uniformMatrix4fv( mat.GetShader().GetProgram().uInvViewMatrix, false, camera.GetInverseMatrix() );
+
+            for(var key in mat.custom_uniforms){
+                var u = mat.custom_uniforms[key];
+                if(u.type == "int" ) gl.uniform1i(mat.GetShader().GetProgram()[key], u.value );
+                else if(u.type == "float" ) gl.uniform1f(mat.GetShader().GetProgram()[key], u.value );
+                else if(u.type == "mat4" ) gl.uniformMatrix4fv(mat.GetShader().GetProgram()[key],false, u.value );
+                else if(u.type == "mat3" ) gl.uniformMatrix3fv(mat.GetShader().GetProgram()[key],false, u.value );
+                else if(u.type == "vec4" ) gl.uniform4fv(mat.GetShader().GetProgram()[key], u.value );
+                else if(u.type == "vec3" ) gl.uniform3fv(mat.GetShader().GetProgram()[key], u.value );
+                else if(u.type == "vec2" ) gl.uniform2fv(mat.GetShader().GetProgram()[key], u.value );
+            }
+
+            if(scene.getLights().length > 0 ) renderLight( scene, mat );
+            var current = this.list[id].head;
+            while(current){
+                if(current.mayRender) {
+                    renderObject(gl, current, mat, camera);
+                    if (debug) console.log("-  Current object: " + current);
+                }
+                current = current.next;
+            }
+            mat.Disable();
+
         }
-        if(debug) OMEGA.Omega3D.Log("Renderer.Render END");
+        if(debug) console.log("Renderer.Render END");
+        mat4.identity(camera.GetMatrix());
     };
 
+    var renderObject = function( gl, current, mat, camera ){
+        current.Update(gl,camera);
+        if(current instanceof LODObject3D) current.adjustLODLevel(camera);
 
+        var p = mat.GetShader().GetProgram();
+
+        /* model matrix */
+        gl.uniformMatrix4fv( p.uModelMatrix , false, current.GetMatrix() );
+
+        /* normal matrix */
+        var normalMatrix4 = mat4.create();
+        var normalMatrix3 = mat3.create();
+        mat4.multiply(normalMatrix4, current.GetMatrix(), camera.GetMatrix() );
+        mat3.fromMat4(normalMatrix3, normalMatrix4 );
+        mat3.invert(normalMatrix3,normalMatrix3 );
+        mat3.transpose(normalMatrix3,normalMatrix3);
+        gl.uniformMatrix3fv( p.uNormalMatrix, false, normalMatrix3 );
+
+        /* point size */
+        gl.uniform1f(p.uPointSize, parseFloat(OMEGA.Omega3D.PointSize) );
+
+        /*vertices*/
+        gl.enableVertexAttribArray(p.aVertexPos);
+        gl.bindBuffer( gl.ARRAY_BUFFER, current.GetMesh().GetVertexBuffer() );
+        gl.vertexAttribPointer( p.aVertexPos, current.GetMesh().GetVertexBuffer().itemSize, gl.FLOAT, false, 0, 0 );
+
+        /*uvs*/
+        if(p.aTextureCoord!=-1&&  current.GetMesh().GetUVBuffer() != undefined){
+            gl.enableVertexAttribArray(p.aTextureCoord);
+            gl.bindBuffer( gl.ARRAY_BUFFER, current.GetMesh().GetUVBuffer());
+            gl.vertexAttribPointer( p.aTextureCoord,current.GetMesh().GetUVBuffer().itemSize, gl.FLOAT, false, 0, 0 );
+        }
+
+        /*aVertexNormals*/
+        if(p.aVertexNormal!=-1 &&  current.GetMesh().GetNormalBuffer() != undefined) {
+            gl.enableVertexAttribArray(p.aVertexNormal);
+            gl.bindBuffer(gl.ARRAY_BUFFER, current.GetMesh().GetNormalBuffer());
+            gl.vertexAttribPointer(p.aVertexNormal, current.GetMesh().GetNormalBuffer().itemSize, gl.FLOAT, false, 0, 0);
+        }
+
+        /*indices*/
+        gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, current.GetMesh().GetIndexBuffer() );
+
+        /* 4   DRAW OBJECT*/
+       //gl.drawArrays( gl.TRIANGLES, 0, current.GetMesh().GetVertexBuffer().numItems);
+        if(current.drawType == OMEGA.Omega3D.Object3D.DEFAULT        ) gl.drawElements( gl.TRIANGLES , current.GetMesh().GetIndexBuffer().numItems, gl.UNSIGNED_SHORT,  current.GetMesh().GetIndexBuffer());
+        else if(current.drawType == OMEGA.Omega3D.Object3D.WIREFRAME ) gl.drawElements( gl.LINE_STRIP, current.GetMesh().GetIndexBuffer().numItems, gl.UNSIGNED_SHORT, current.GetMesh().GetGeometry().GetVertices()/3);
+        else if(current.drawType == OMEGA.Omega3D.Object3D.POINTS    ) gl.drawArrays( gl.POINTS      , 0, current.GetMesh().GetVertexBuffer().numItems);
+
+        //disable arrays.
+        if(p.aVertexPos!=-1   )gl.disableVertexAttribArray(p.aVertexPos   );
+        if(p.aTextureCoord!=-1)gl.disableVertexAttribArray(p.aTextureCoord);
+        if(p.aVertexNormal!=-1)gl.disableVertexAttribArray(p.aVertexNormal);
+
+        //reset position.
+        current.PlaceBack();
+        current.LateUpdate(gl,camera);
+    };
+    var renderLight = function( scene, mat ){
+        var gl = scene.getGL();
+        var l = scene.getLights()[0];
+
+        var p = mat.GetShader().GetProgram();
+        p.uLightPosition  = gl.getUniformLocation(p, "uLightPosition");
+        p.uLightDirection = gl.getUniformLocation(p, "uLightDirection");
+        p.uAmbientColor   = gl.getUniformLocation(p, "uAmbientColor" );
+        p.uDiffuseColor   = gl.getUniformLocation(p, "uDiffuseColor" );
+        p.uSpecularColor  = gl.getUniformLocation(p, "uSpecularColor");
+
+
+
+        if( p.uLightPosition !=-1 ) gl.uniform3fv( p.uLightPosition, l.position      );
+        if( p.uLightDirection!=-1 ) gl.uniform3fv( p.uAmbientColor , l.ambientColor  );
+        if( p.uAmbientColor  !=-1 ) gl.uniform3fv( p.uAmbientColor , l.ambientColor  );
+        if( p.uDiffuseColor  !=-1 ) gl.uniform3fv( p.uDiffuseColor , l.diffuseColor  );
+        if( p.uSpecularColor !=-1 ) gl.uniform3fv( p.uSpecularColor, l.specularColor );
+    };
     var contains = function(a, obj) {
         for (var i = 0; i < a.length; i++) {
             if (a[i] === obj) {
